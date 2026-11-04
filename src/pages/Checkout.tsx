@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { useCart } from "../contexts/CartContext";
@@ -6,6 +6,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
 import { ordersService, paymentsService } from "../services/orders.service";
 import { extractError } from "../services/http";
+import { lookupZipCode } from "../services/zipCode.service";
+import { formatDeliveryEstimate } from "../utils/shipping";
 import {
   Button,
   Card,
@@ -89,6 +91,12 @@ const Notice = styled.p`
   margin-top: ${({ theme }) => theme.spacing(4)};
 `;
 
+const Hint = styled.p`
+  font-size: 0.78rem;
+  color: ${({ theme }) => theme.colors.textFaint};
+  margin-top: ${({ theme }) => theme.spacing(1)};
+`;
+
 const SectionHead = styled.h2`
   font-size: 1.15rem;
   margin-bottom: ${({ theme }) => theme.spacing(5)};
@@ -127,7 +135,8 @@ const EMPTY: FormState = {
 };
 
 export default function Checkout() {
-  const { cart, loading, shippingMethod, setShipping } = useCart();
+  const { cart, loading, shippingMethod, setShipping, zipCode: cartZipCode } =
+    useCart();
   const { user } = useAuth();
   const { push } = useToast();
 
@@ -136,6 +145,11 @@ export default function Checkout() {
     Partial<Record<keyof FormState, string>>
   >({});
   const [submitting, setSubmitting] = useState(false);
+  const [zipStatus, setZipStatus] = useState<"loading" | "notFound" | null>(
+    null,
+  );
+  const numberRef = useRef<HTMLInputElement>(null);
+  const zipPrefilled = useRef(false);
   const [paymentInfo, setPaymentInfo] = useState<{ simulated: boolean } | null>(
     null,
   );
@@ -179,28 +193,52 @@ export default function Checkout() {
     setErrors((current) => ({ ...current, [key]: undefined }));
   };
 
-  /** Busca o endereço no ViaCEP e recalcula o frete. */
+  /** Recalcula o frete e preenche rua, bairro, cidade e UF a partir do CEP (ViaCEP). */
   const lookupZip = async (masked: string) => {
     const digits = masked.replace(/\D/g, "");
-    if (digits.length !== 8) return;
+    if (digits.length !== 8) {
+      setZipStatus(null);
+      return;
+    }
 
     void setShipping(digits, shippingMethod);
 
-    try {
-      const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
-      const data = await response.json();
-      if (data.erro) return;
-      setForm((current) => ({
-        ...current,
-        street: data.logradouro || current.street,
-        district: data.bairro || current.district,
-        city: data.localidade || current.city,
-        state: data.uf || current.state,
-      }));
-    } catch {
-      // ViaCEP fora do ar não impede o preenchimento manual
+    setZipStatus("loading");
+    const address = await lookupZipCode(digits);
+    if (!address) {
+      setZipStatus("notFound");
+      return;
     }
+    setZipStatus(null);
+    setForm((current) => ({
+      ...current,
+      street: address.street || current.street,
+      district: address.district || current.district,
+      city: address.city || current.city,
+      state: address.state || current.state,
+    }));
+    setErrors((current) => ({
+      ...current,
+      zipCode: undefined,
+      street: address.street ? undefined : current.street,
+      district: address.district ? undefined : current.district,
+      city: undefined,
+      state: undefined,
+    }));
+    numberRef.current?.focus();
   };
+
+  // CEP já informado no carrinho: preenche o endereço sem precisar digitar de novo
+  useEffect(() => {
+    if (zipPrefilled.current || !cartZipCode || form.zipCode) return;
+    // Endereço salvo na conta tem prioridade (preenchido pelo efeito acima)
+    if (user?.addresses?.length) return;
+    zipPrefilled.current = true;
+    const masked = maskZipCode(cartZipCode);
+    setForm((current) => ({ ...current, zipCode: masked }));
+    void lookupZip(masked);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartZipCode, form.zipCode, user]);
 
   const validate = (): boolean => {
     const next: Partial<Record<keyof FormState, string>> = {};
@@ -375,7 +413,15 @@ export default function Checkout() {
                         void lookupZip(masked);
                       }}
                     />
-                    {errors.zipCode && <ErrorText>{errors.zipCode}</ErrorText>}
+                    {errors.zipCode ? (
+                      <ErrorText>{errors.zipCode}</ErrorText>
+                    ) : zipStatus === "loading" ? (
+                      <Hint>Buscando endereço…</Hint>
+                    ) : zipStatus === "notFound" ? (
+                      <Hint>
+                        CEP não encontrado. Preencha o endereço manualmente.
+                      </Hint>
+                    ) : null}
                   </Field>
 
                   <Field $span={2}>
@@ -406,6 +452,7 @@ export default function Checkout() {
                     <Label htmlFor="number">Número</Label>
                     <Input
                       id="number"
+                      ref={numberRef}
                       value={form.number}
                       $invalid={Boolean(errors.number)}
                       onChange={(e) => update("number", e.target.value)}
@@ -479,7 +526,7 @@ export default function Checkout() {
                             {option.priceCents === 0
                               ? "grátis"
                               : formatBRL(option.priceCents)}{" "}
-                            · {option.estimatedDays} dias úteis
+                            · {formatDeliveryEstimate(option)}
                           </option>
                         ))}
                       </Select>
@@ -535,6 +582,11 @@ export default function Checkout() {
                     : formatBRL(totals.shippingCents)}
                 </span>
               </Line>
+              {shipping.selected && (
+                <Hint style={{ marginTop: 0, marginBottom: 8 }}>
+                  Entrega: {formatDeliveryEstimate(shipping.selected)}
+                </Hint>
+              )}
 
               <Divider />
 

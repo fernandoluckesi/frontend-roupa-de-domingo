@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { useAuth } from "../contexts/AuthContext";
@@ -6,6 +6,7 @@ import { useEasterEggs } from "../contexts/EasterEggContext";
 import { useToast } from "../contexts/ToastContext";
 import { authService } from "../services/auth.service";
 import { extractError } from "../services/http";
+import { lookupZipCode } from "../services/zipCode.service";
 import {
   Button,
   Card,
@@ -114,6 +115,8 @@ export default function Account() {
   const [modalOpen, setModalOpen] = useState(false);
   const [newAddress, setNewAddress] = useState(EMPTY_ADDRESS);
   const [saving, setSaving] = useState(false);
+  const [zipHint, setZipHint] = useState("");
+  const addressNumberRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -206,6 +209,31 @@ export default function Account() {
     value: string | boolean,
   ) => setNewAddress((current) => ({ ...current, [key]: value }));
 
+  /** CEP completo: preenche rua, bairro, cidade e UF pelo ViaCEP. */
+  const changeAddressZip = async (raw: string) => {
+    const masked = maskZipCode(raw);
+    updateNew("zipCode", masked);
+    if (masked.replace(/\D/g, "").length !== 8) {
+      setZipHint("");
+      return;
+    }
+    setZipHint("Buscando endereço…");
+    const address = await lookupZipCode(masked);
+    if (!address) {
+      setZipHint("CEP não encontrado. Preencha manualmente.");
+      return;
+    }
+    setZipHint("");
+    setNewAddress((current) => ({
+      ...current,
+      street: address.street || current.street,
+      district: address.district || current.district,
+      city: address.city || current.city,
+      state: address.state || current.state,
+    }));
+    addressNumberRef.current?.focus();
+  };
+
   return (
     <Section $tight>
       <Container>
@@ -243,6 +271,17 @@ export default function Account() {
                   onChange={(e) =>
                     setProfile({ ...profile, name: e.target.value })
                   }
+                />
+              </Field>
+              <Field>
+                <Label htmlFor="acc-email">E-mail</Label>
+                <Input
+                  id="acc-email"
+                  type="email"
+                  value={user.email}
+                  readOnly
+                  disabled
+                  title="O e-mail é o login da conta e não pode ser alterado aqui"
                 />
               </Field>
               <Field>
@@ -350,11 +389,16 @@ export default function Account() {
                 <Input
                   id="ad-zip"
                   value={newAddress.zipCode}
-                  onChange={(e) =>
-                    updateNew("zipCode", maskZipCode(e.target.value))
-                  }
+                  inputMode="numeric"
+                  placeholder="00000-000"
+                  onChange={(e) => void changeAddressZip(e.target.value)}
                   required
                 />
+                {zipHint && (
+                  <small style={{ fontSize: "0.78rem", opacity: 0.7 }}>
+                    {zipHint}
+                  </small>
+                )}
               </Field>
               <Field $span={2}>
                 <Label htmlFor="ad-recipient">Quem recebe</Label>
@@ -378,6 +422,7 @@ export default function Account() {
                 <Label htmlFor="ad-number">Número</Label>
                 <Input
                   id="ad-number"
+                  ref={addressNumberRef}
                   value={newAddress.number}
                   onChange={(e) => updateNew("number", e.target.value)}
                   required

@@ -16,6 +16,7 @@ import {
   Select,
 } from "../components/ui";
 import { formatBRL, maskZipCode } from "../utils/format";
+import { formatDeliveryEstimate } from "../utils/shipping";
 
 const Layout = styled.div`
   display: grid;
@@ -304,7 +305,7 @@ export default function CartPage() {
                       {option.priceCents === 0
                         ? "grátis"
                         : formatBRL(option.priceCents)}{" "}
-                      · {option.estimatedDays} dias
+                      · {formatDeliveryEstimate(option)}
                     </option>
                   ))}
                 </Select>

@@ -104,7 +104,13 @@ export interface ShippingOption {
   label: string;
   priceCents: number;
   estimatedDays: number;
+  minDays?: number;
+  maxDays?: number;
+  /** YYYY-MM-DD, quando a estamparia informa */
+  estimatedDeliveryDate?: string | null;
   carrier: string;
+  /** "printful" = cotação real; "tabela" = estimativa local */
+  source?: "printful" | "tabela";
 }
 
 export interface Cart {
