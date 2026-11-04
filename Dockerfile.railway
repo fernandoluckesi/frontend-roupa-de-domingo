@@ -1,0 +1,31 @@
+# Imagem de producao para o Railway.
+# O Railway so aceita "RUN --mount=type=cache"; o Dockerfile principal usa
+# "--mount=type=bind" para a CA corporativa (rede local com proxy) e falha na
+# validacao de la. Aqui nao ha proxy: build direto, sem mounts.
+# Selecionado pelo railway.json (build.dockerfilePath).
+
+FROM node:20-slim AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --no-audit --no-fund
+COPY . .
+# O Vite embute as variaveis no bundle: precisam existir no BUILD.
+# O Railway repassa as variaveis do servico como build args quando o ARG e declarado.
+# Padrao "/api": mesma origem, o nginx abaixo repassa para o backend pela rede privada.
+ARG VITE_API_URL=/api
+ARG VITE_STORE_NAME="Roupa de Domingo"
+ENV VITE_API_URL=$VITE_API_URL VITE_STORE_NAME=$VITE_STORE_NAME
+RUN npm run build
+
+FROM nginx:1.27-alpine AS production
+# A imagem oficial roda envsubst em /etc/nginx/templates/*.template no start:
+# o nginx escuta na porta que o Railway injeta em $PORT (80 se nao houver).
+ENV PORT=80
+# Backend na rede privada do Railway (<servico>.railway.internal:<PORT do backend>)
+ENV BACKEND_INTERNAL_URL=http://backend-roupa-de-domingo.railway.internal:8080
+# Faz a imagem preencher NGINX_LOCAL_RESOLVERS a partir do /etc/resolv.conf (DNS interno)
+ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1
+COPY nginx.railway.conf.template /etc/nginx/templates/default.conf.template
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
