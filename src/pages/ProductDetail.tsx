@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { catalogService } from "../services/catalog.service";
 import { useCart } from "../contexts/CartContext";
+import { cartService } from "../services/cart.service";
+import { extractError } from "../services/http";
 import { ProductCard, ProductGrid } from "../components/product/ProductCard";
 import {
   Button,
@@ -17,8 +19,9 @@ import {
   Section,
   SectionTitle,
 } from "../components/ui";
-import { formatBRL } from "../utils/format";
-import type { Product, ProductVariant } from "../types";
+import { formatBRL, maskZipCode } from "../utils/format";
+import { formatDeliveryEstimate } from "../utils/shipping";
+import type { Product, ProductVariant, ShippingOption } from "../types";
 
 const Layout = styled.div`
   display: grid;
@@ -157,6 +160,60 @@ const BuyRow = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing(5)};
 `;
 
+const ShippingBox = styled.form`
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  padding: ${({ theme }) => theme.spacing(4)};
+  margin-bottom: ${({ theme }) => theme.spacing(5)};
+
+  .row {
+    display: flex;
+    gap: ${({ theme }) => theme.spacing(2)};
+    margin-top: ${({ theme }) => theme.spacing(2)};
+  }
+
+  .row input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  ul {
+    list-style: none;
+    margin-top: ${({ theme }) => theme.spacing(3)};
+    display: grid;
+    gap: ${({ theme }) => theme.spacing(2)};
+  }
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: ${({ theme }) => theme.spacing(3)};
+    font-size: 0.88rem;
+  }
+
+  li small {
+    display: block;
+    color: ${({ theme }) => theme.colors.textSoft};
+    font-size: 0.8rem;
+  }
+
+  .hint {
+    margin-top: ${({ theme }) => theme.spacing(2)};
+    font-size: 0.8rem;
+    color: ${({ theme }) => theme.colors.textFaint};
+  }
+
+  .error {
+    margin-top: ${({ theme }) => theme.spacing(2)};
+    font-size: 0.82rem;
+    color: ${({ theme }) => theme.colors.danger};
+  }
+
+  a {
+    color: inherit;
+  }
+`;
+
 const Facts = styled.ul`
   display: grid;
   gap: ${({ theme }) => theme.spacing(2)};
@@ -176,7 +233,8 @@ const unique = (values: (string | null | undefined)[]) =>
 
 export default function ProductDetail() {
   const { slug = "" } = useParams();
-  const { addItem } = useCart();
+  const navigate = useNavigate();
+  const { addItem, zipCode: savedZipCode, setShipping } = useCart();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -187,7 +245,11 @@ export default function ProductDetail() {
   const [model, setModel] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [customText, setCustomText] = useState("");
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState<"cart" | "buy" | null>(null);
+  const [zipInput, setZipInput] = useState(() => maskZipCode(savedZipCode));
+  const [quote, setQuote] = useState<ShippingOption[] | null>(null);
+  const [quoting, setQuoting] = useState(false);
+  const [quoteError, setQuoteError] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -233,6 +295,12 @@ export default function ProductDetail() {
     );
   }, [product, size, color, model, sizes.length, colors.length, models.length]);
 
+  // Variante ou quantidade mudou: a cotação anterior não vale mais
+  useEffect(() => {
+    setQuote(null);
+    setQuoteError("");
+  }, [selectedVariant?.id, quantity]);
+
   if (loading) return <Loading label="Abrindo a gaveta..." />;
 
   if (notFound || !product) {
@@ -254,11 +322,46 @@ export default function ProductDetail() {
   const priceCents = selectedVariant?.priceCents ?? product.basePriceCents;
   const image = product.images[imageIndex] ?? product.images[0];
 
-  const handleAdd = async () => {
+  const handleAdd = async (mode: "cart" | "buy") => {
     if (!selectedVariant) return;
-    setAdding(true);
-    await addItem(selectedVariant.id, quantity, customText || undefined);
-    setAdding(false);
+    setAdding(mode);
+    const added = await addItem(
+      selectedVariant.id,
+      quantity,
+      customText || undefined,
+      { silent: mode === "buy" },
+    );
+    setAdding(null);
+    // Comprar agora: o item já está no carrinho, segue direto para o checkout
+    if (added && mode === "buy") navigate("/checkout");
+  };
+
+  const simulateShipping = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!selectedVariant) return;
+    const digits = zipInput.replace(/\D/g, "");
+    if (digits.length !== 8) {
+      setQuoteError("Informe um CEP com 8 dígitos.");
+      setQuote(null);
+      return;
+    }
+    setQuoting(true);
+    setQuoteError("");
+    try {
+      const result = await cartService.quoteShipping({
+        zipCode: digits,
+        variantId: selectedVariant.id,
+        quantity,
+      });
+      setQuote(result.options);
+      // Guarda o CEP: carrinho e checkout já abrem com ele
+      void setShipping(digits);
+    } catch (error) {
+      setQuote(null);
+      setQuoteError(extractError(error));
+    } finally {
+      setQuoting(false);
+    }
   };
 
   return (
@@ -380,12 +483,69 @@ export default function ProductDetail() {
               />
               <Button
                 $size="lg"
-                onClick={handleAdd}
-                disabled={adding || !selectedVariant?.isAvailable}
+                $variant="secondary"
+                onClick={() => void handleAdd("cart")}
+                disabled={adding !== null || !selectedVariant?.isAvailable}
               >
-                {adding ? "Adicionando..." : "Adicionar ao carrinho"}
+                {adding === "cart" ? "Adicionando..." : "Adicionar ao carrinho"}
+              </Button>
+              <Button
+                $size="lg"
+                onClick={() => void handleAdd("buy")}
+                disabled={adding !== null || !selectedVariant?.isAvailable}
+              >
+                {adding === "buy" ? "Indo para o checkout..." : "Comprar agora"}
               </Button>
             </BuyRow>
+
+            <ShippingBox onSubmit={simulateShipping} noValidate>
+              <Label htmlFor="pdp-zip">Calcular frete e prazo</Label>
+              <div className="row">
+                <Input
+                  id="pdp-zip"
+                  inputMode="numeric"
+                  placeholder="00000-000"
+                  value={zipInput}
+                  onChange={(e) => setZipInput(maskZipCode(e.target.value))}
+                />
+                <Button type="submit" $variant="secondary" disabled={quoting}>
+                  {quoting ? "Calculando..." : "Calcular"}
+                </Button>
+              </div>
+              {quoteError && <p className="error">{quoteError}</p>}
+              {quote && (
+                <ul>
+                  {quote.map((option) => (
+                    <li key={option.method}>
+                      <span>
+                        {option.label}
+                        <small>{formatDeliveryEstimate(option)}</small>
+                      </span>
+                      <strong>
+                        {option.priceCents === 0
+                          ? "Grátis"
+                          : formatBRL(option.priceCents)}
+                      </strong>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {quote && (
+                <p className="hint">
+                  Para {quantity} {quantity === 1 ? "unidade" : "unidades"}. O
+                  valor final é recalculado no carrinho.
+                </p>
+              )}
+              <p className="hint">
+                <a
+                  href="https://buscacepinter.correios.com.br/app/endereco/index.php"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Não sei meu CEP
+                </a>
+              </p>
+            </ShippingBox>
 
             <p className="description">{product.description}</p>
 

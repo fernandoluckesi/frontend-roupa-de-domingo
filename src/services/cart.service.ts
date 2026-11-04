@@ -49,19 +49,16 @@ export const cartService = {
     return data;
   },
 
-  async quoteShipping(
-    zipCode: string,
-    weightGrams: number,
-    subtotalCents: number,
-  ): Promise<{
+  /** Simula o frete de um produto (página de produto), com a cotação real quando houver. */
+  async quoteShipping(payload: {
+    zipCode: string;
+    variantId: string;
+    quantity: number;
+  }): Promise<{
     options: ShippingOption[];
     freeShippingThresholdCents: number;
   }> {
-    const { data } = await api.post("/shipping/quote", {
-      zipCode,
-      weightGrams,
-      subtotalCents,
-    });
+    const { data } = await api.post("/shipping/quote", payload);
     return data;
   },
 };

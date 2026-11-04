@@ -97,6 +97,24 @@ const Hint = styled.p`
   margin-top: ${({ theme }) => theme.spacing(1)};
 `;
 
+const CheckRow = styled.label`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing(2)};
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  input {
+    width: 18px;
+    height: 18px;
+    accent-color: ${({ theme }) => theme.colors.accent};
+  }
+
+  span {
+    color: ${({ theme }) => theme.colors.textFaint};
+  }
+`;
+
 const SectionHead = styled.h2`
   font-size: 1.15rem;
   margin-bottom: ${({ theme }) => theme.spacing(5)};
@@ -135,8 +153,13 @@ const EMPTY: FormState = {
 };
 
 export default function Checkout() {
-  const { cart, loading, shippingMethod, setShipping, zipCode: cartZipCode } =
-    useCart();
+  const {
+    cart,
+    loading,
+    shippingMethod,
+    setShipping,
+    zipCode: cartZipCode,
+  } = useCart();
   const { user } = useAuth();
   const { push } = useToast();
 
@@ -150,6 +173,8 @@ export default function Checkout() {
   );
   const numberRef = useRef<HTMLInputElement>(null);
   const zipPrefilled = useRef(false);
+  // Padrão: o próprio comprador recebe (nome dos dados pessoais)
+  const [selfRecipient, setSelfRecipient] = useState(true);
   const [paymentInfo, setPaymentInfo] = useState<{ simulated: boolean } | null>(
     null,
   );
@@ -187,6 +212,23 @@ export default function Checkout() {
         : {}),
     }));
   }, [user]);
+
+  // Endereço salvo com outro destinatário: mostra o campo já preenchido
+  useEffect(() => {
+    const address =
+      user?.addresses?.find((a) => a.isDefault) ?? user?.addresses?.[0];
+    if (
+      address?.recipient &&
+      user?.name &&
+      address.recipient.trim().toLowerCase() !== user.name.trim().toLowerCase()
+    ) {
+      setSelfRecipient(false);
+    }
+  }, [user]);
+
+  const recipientName = selfRecipient
+    ? form.customerName.trim()
+    : form.recipient.trim();
 
   const update = (key: keyof FormState, value: string) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -250,7 +292,8 @@ export default function Checkout() {
     if (form.customerDocument.replace(/\D/g, "").length !== 11)
       next.customerDocument =
         "CPF precisa de 11 dígitos (o Mercado Pago exige).";
-    if (form.recipient.trim().length < 2) next.recipient = "Quem recebe?";
+    if (!selfRecipient && form.recipient.trim().length < 2)
+      next.recipient = "Quem recebe?";
     if (form.zipCode.replace(/\D/g, "").length !== 8)
       next.zipCode = "CEP inválido.";
     if (form.street.trim().length < 2) next.street = "Informe a rua.";
@@ -285,7 +328,7 @@ export default function Checkout() {
         shippingMethod: shippingMethod,
         notes: form.notes.trim() || undefined,
         shippingAddress: {
-          recipient: form.recipient.trim(),
+          recipient: recipientName,
           zipCode: form.zipCode.replace(/\D/g, ""),
           street: form.street.trim(),
           number: form.number.trim(),
@@ -424,19 +467,6 @@ export default function Checkout() {
                     ) : null}
                   </Field>
 
-                  <Field $span={2}>
-                    <Label htmlFor="recipient">Quem recebe</Label>
-                    <Input
-                      id="recipient"
-                      value={form.recipient}
-                      $invalid={Boolean(errors.recipient)}
-                      onChange={(e) => update("recipient", e.target.value)}
-                    />
-                    {errors.recipient && (
-                      <ErrorText>{errors.recipient}</ErrorText>
-                    )}
-                  </Field>
-
                   <Field $span={3}>
                     <Label htmlFor="street">Rua</Label>
                     <Input
@@ -506,6 +536,39 @@ export default function Checkout() {
                     />
                     {errors.state && <ErrorText>{errors.state}</ErrorText>}
                   </Field>
+
+                  <Field $span={4}>
+                    <CheckRow>
+                      <input
+                        type="checkbox"
+                        checked={selfRecipient}
+                        onChange={(e) => {
+                          setSelfRecipient(e.target.checked);
+                          setErrors((c) => ({ ...c, recipient: undefined }));
+                        }}
+                      />
+                      Eu mesmo vou receber
+                      {form.customerName.trim() && (
+                        <span>({form.customerName.trim()})</span>
+                      )}
+                    </CheckRow>
+                  </Field>
+
+                  {!selfRecipient && (
+                    <Field $span={4}>
+                      <Label htmlFor="recipient">Quem recebe</Label>
+                      <Input
+                        id="recipient"
+                        placeholder="Nome de quem vai receber a encomenda"
+                        value={form.recipient}
+                        $invalid={Boolean(errors.recipient)}
+                        onChange={(e) => update("recipient", e.target.value)}
+                      />
+                      {errors.recipient && (
+                        <ErrorText>{errors.recipient}</ErrorText>
+                      )}
+                    </Field>
+                  )}
 
                   {shipping.options.length > 0 && (
                     <Field $span={4}>
@@ -596,7 +659,7 @@ export default function Checkout() {
               </Line>
 
               <Button $size="lg" $full type="submit" disabled={submitting}>
-                {submitting ? "Redirecionando..." : "Pagar com Mercado Pago"}
+                {submitting ? "Redirecionando..." : "Ir para pagamento"}
               </Button>
 
               <Notice>

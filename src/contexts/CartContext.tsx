@@ -24,7 +24,8 @@ interface CartContextValue {
     variantId: string,
     quantity?: number,
     customText?: string,
-  ) => Promise<void>;
+    options?: { silent?: boolean },
+  ) => Promise<boolean>;
   updateItem: (itemId: string, quantity: number) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   clear: () => Promise<void>;
@@ -84,22 +85,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   const addItem = useCallback(
-    async (variantId: string, quantity = 1, customText?: string) => {
+    async (
+      variantId: string,
+      quantity = 1,
+      customText?: string,
+      options?: { silent?: boolean },
+    ) => {
       try {
         handleResult(
           await cartService.addItem(variantId, quantity, customText),
         );
+        if (options?.silent) return true;
         push({
           variant: "success",
           title: "Adicionado ao carrinho",
           message: "Decisão questionável, mas respeitamos.",
         });
+        return true;
       } catch (error) {
         push({
           variant: "error",
           title: "Não deu",
           message: extractError(error),
         });
+        return false;
       }
     },
     [handleResult, push],

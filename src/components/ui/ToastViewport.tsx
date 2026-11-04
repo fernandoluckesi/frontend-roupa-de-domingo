@@ -2,13 +2,13 @@ import styled, { css, keyframes } from "styled-components";
 import { useToast, type ToastVariant } from "../../contexts/ToastContext";
 
 const slideIn = keyframes`
-  from { opacity: 0; transform: translateX(24px); }
-  to { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 `;
 
 const Viewport = styled.div`
   position: fixed;
-  top: ${({ theme }) => theme.spacing(5)};
+  bottom: ${({ theme }) => theme.spacing(5)};
   right: ${({ theme }) => theme.spacing(5)};
   display: flex;
   flex-direction: column;
@@ -32,8 +32,9 @@ const Item = styled.div<{ $variant: ToastVariant }>`
   border-radius: ${({ theme }) => theme.radius.md};
   box-shadow: ${({ theme }) => theme.shadow.md};
   padding: ${({ theme }) => theme.spacing(4)};
+  padding-right: ${({ theme }) => theme.spacing(10)};
+  position: relative;
   animation: ${slideIn} 220ms ease-out;
-  cursor: pointer;
 
   strong {
     display: block;
@@ -77,6 +78,29 @@ const Item = styled.div<{ $variant: ToastVariant }>`
   }}
 `;
 
+const Close = styled.button`
+  position: absolute;
+  top: ${({ theme }) => theme.spacing(2)};
+  right: ${({ theme }) => theme.spacing(2)};
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: ${({ theme }) => theme.radius.sm};
+  background: transparent;
+  color: ${({ theme }) => theme.colors.textSoft};
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: ${({ theme }) => theme.colors.border};
+    color: ${({ theme }) => theme.colors.text};
+  }
+`;
+
 export function ToastViewport() {
   const { toasts, dismiss } = useToast();
 
@@ -85,11 +109,14 @@ export function ToastViewport() {
   return (
     <Viewport role="status" aria-live="polite">
       {toasts.map((toast) => (
-        <Item
-          key={toast.id}
-          $variant={toast.variant}
-          onClick={() => dismiss(toast.id)}
-        >
+        <Item key={toast.id} $variant={toast.variant}>
+          <Close
+            type="button"
+            aria-label="Fechar aviso"
+            onClick={() => dismiss(toast.id)}
+          >
+            ×
+          </Close>
           <strong>{toast.title}</strong>
           {toast.message && <p>{toast.message}</p>}
           {toast.coupon && <code>{toast.coupon}</code>}
