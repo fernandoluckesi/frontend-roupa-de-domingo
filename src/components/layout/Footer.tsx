@@ -92,7 +92,7 @@ export function Footer() {
           <Column>
             <strong>Roupa de Domingo</strong>
             <p>
-              Estampas de humor ácido em camisetas, canecas e capas. Produzimos
+              Estampas de humor ácido em camisetas, moletons, canecas, capas e garrafas. Produzimos
               sob demanda com parceiro de estamparia, então nada fica encalhado
               no estoque — só as nossas ideias.
             </p>
@@ -111,7 +111,13 @@ export function Footer() {
                 <Link to="/catalogo?category=canecas">Canecas</Link>
               </li>
               <li>
+                <Link to="/catalogo?category=moletons">Moletons</Link>
+              </li>
+              <li>
                 <Link to="/catalogo?category=capas-de-celular">Capas</Link>
+              </li>
+              <li>
+                <Link to="/catalogo?category=garrafas">Garrafas</Link>
               </li>
             </ul>
           </Column>

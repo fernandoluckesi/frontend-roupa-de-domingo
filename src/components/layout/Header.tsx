@@ -149,10 +149,7 @@ export function Header() {
 
   return (
     <Bar>
-      <Strip>
-        Produção on-demand · frete grátis acima de R$ 249 · arrependimento não
-        incluso
-      </Strip>
+      <Strip>Frete grátis acima de R$ 249</Strip>
       <Inner>
         <Logo
           type="button"
@@ -170,7 +167,9 @@ export function Header() {
           <Link to="/catalogo">Tudo</Link>
           <Link to="/catalogo?category=camisetas">Camisetas</Link>
           <Link to="/catalogo?category=canecas">Canecas</Link>
+          <Link to="/catalogo?category=moletons">Moletons</Link>
           <Link to="/catalogo?category=capas-de-celular">Capas</Link>
+          <Link to="/catalogo?category=garrafas">Garrafas</Link>
           <Link to="/trofeus">
             Troféus{progress ? ` ${progress.found}/${progress.total}` : ""}
           </Link>

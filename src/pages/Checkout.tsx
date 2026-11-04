@@ -98,7 +98,10 @@ const Hint = styled.p`
 `;
 
 const CheckRow = styled.label`
-  display: flex;
+  /* inline-flex: a área clicável é só o checkbox + texto, não a linha inteira */
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
   align-items: center;
   gap: ${({ theme }) => theme.spacing(2)};
   font-size: 0.9rem;
