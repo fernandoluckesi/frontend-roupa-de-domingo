@@ -3,6 +3,9 @@ import styled from "styled-components";
 import { Container } from "../ui/Layout";
 import { useEasterEggs } from "../../contexts/EasterEggContext";
 import { useLongHover } from "../../hooks/useEasterEggTriggers";
+import { useConsent } from "../../contexts/ConsentContext";
+import { COMPANY, COMPANY_ADDRESS_LINE } from "../../config/company";
+import { LEGAL_LINKS } from "../../pages/legal";
 
 const Wrapper = styled.footer`
   border-top: 1px solid ${({ theme }) => theme.colors.border};
@@ -14,7 +17,7 @@ const Wrapper = styled.footer`
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: 1.4fr repeat(3, 1fr);
+  grid-template-columns: 1.4fr repeat(4, 1fr);
   gap: ${({ theme }) => theme.spacing(8)};
 
   @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
@@ -64,6 +67,32 @@ const Column = styled.div`
   }
 `;
 
+const LinkButton = styled.button`
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.colors.textSoft};
+  cursor: pointer;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.accent};
+  }
+`;
+
+const Identification = styled.address`
+  font-style: normal;
+  margin-top: ${({ theme }) => theme.spacing(6)};
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: ${({ theme }) => theme.colors.textFaint};
+
+  a {
+    color: ${({ theme }) => theme.colors.textSoft};
+  }
+`;
+
 const Bottom = styled.div`
   margin-top: ${({ theme }) => theme.spacing(10)};
   padding-top: ${({ theme }) => theme.spacing(5)};
@@ -78,6 +107,7 @@ const Bottom = styled.div`
 
 export function Footer() {
   const { discover } = useEasterEggs();
+  const { openPreferences } = useConsent();
 
   // Easter egg #6: cinco segundos de hover no rodapé
   const hoverProps = useLongHover(
@@ -141,30 +171,51 @@ export function Footer() {
           </Column>
 
           <Column>
+            <h4>Ajuda</h4>
+            <ul>
+              {LEGAL_LINKS.slice(0, 6).map((link) => (
+                <li key={link.path}>
+                  <Link to={link.path}>{link.label}</Link>
+                </li>
+              ))}
+            </ul>
+          </Column>
+
+          <Column>
             <h4>Transparência</h4>
             <ul>
+              {LEGAL_LINKS.slice(6).map((link) => (
+                <li key={link.path}>
+                  <Link to={link.path}>{link.label}</Link>
+                </li>
+              ))}
               <li>
-                <span>Pagamento via Mercado Pago</span>
+                <LinkButton type="button" onClick={openPreferences}>
+                  Preferências de cookies
+                </LinkButton>
               </li>
               <li>
-                <span>Produção em 2 a 4 dias úteis</span>
-              </li>
-              <li>
-                <span>Troca por defeito em 30 dias</span>
-              </li>
-              <li>
-                <span>Troca por arrependimento: 7 dias</span>
+                <span>Arrependimento: 7 dias · Defeito: 90 dias</span>
               </li>
             </ul>
           </Column>
         </Grid>
+
+        <Identification aria-label="Identificação do fornecedor">
+          {COMPANY.legalName} · CNPJ {COMPANY.cnpj} · IE {COMPANY.stateRegistration}
+          <br />
+          {COMPANY_ADDRESS_LINE}
+          <br />
+          SAC: <a href={`mailto:${COMPANY.sacEmail}`}>{COMPANY.sacEmail}</a> · {COMPANY.phone} · {COMPANY.sacHours} ·
+          resposta em até {COMPANY.sacResponseBusinessDays} dias úteis
+        </Identification>
 
         <Bottom>
           <span>
             © {new Date().getFullYear()} Roupa de Domingo. Nenhum domingo foi
             poupado.
           </span>
-          <span>CNPJ 00.000.000/0001-00 · São Paulo, SP</span>
+          <span>Pagamento processado pelo Mercado Pago · produção sob demanda</span>
         </Bottom>
       </Container>
     </Wrapper>

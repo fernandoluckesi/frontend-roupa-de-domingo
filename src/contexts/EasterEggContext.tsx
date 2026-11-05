@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { easterEggsService } from "../services/easterEggs.service";
+import { hasConsent } from "./ConsentContext";
 import { useToast } from "./ToastContext";
 import type { EasterEggItem, EasterEggProgress } from "../types";
 import type { ThemeMode } from "../styles/theme";
@@ -26,13 +27,6 @@ const EasterEggContext = createContext<EasterEggContextValue | null>(null);
 
 const THEME_KEY = "rd:themeMode";
 
-const CONSOLE_ART = `
-   ____                             __        ____                  _
-  / __ \\___  __ ______  ____ _     / /__     / __ \\___  __ _  (_)__  ___ _ ___
- / /_/ / _ \\/ // / __ \\/ _  /  / // -_)  / /_/ / _ \\/  ' \\/ / _ \\/ _ \`// _ \\
-/_/ |_|\\___/\\_,_/ .__/\\_,_/   \\_,_/\\__/  /_____/\\___/_/_/_/_/_//_/\\_, / \\___/
-               /_/                                               /___/
-`;
 
 export function EasterEggProvider({ children }: { children: ReactNode }) {
   const { push } = useToast();
@@ -45,7 +39,8 @@ export function EasterEggProvider({ children }: { children: ReactNode }) {
 
   const setThemeMode = useCallback((mode: ThemeMode) => {
     setThemeModeState(mode);
-    localStorage.setItem(THEME_KEY, mode);
+    // Lembrar o tema entre visitas é "preferência": só com consentimento
+    if (hasConsent("preferences")) localStorage.setItem(THEME_KEY, mode);
   }, []);
 
   const reload = useCallback(async () => {
@@ -85,34 +80,6 @@ export function EasterEggProvider({ children }: { children: ReactNode }) {
     },
     [push, reload],
   );
-
-  // Easter egg #5: mensagem no console, uma vez por sessão
-  useEffect(() => {
-    if (sessionStorage.getItem("rd:consoleGreeted")) return;
-    sessionStorage.setItem("rd:consoleGreeted", "1");
-
-    /* eslint-disable no-console */
-    console.log(`%c${CONSOLE_ART}`, "color:#d7ff3e;font-family:monospace");
-    console.log(
-      "%cVocê abriu o console de uma loja de camiseta.",
-      "font-size:14px;font-weight:bold;color:#d7ff3e",
-    );
-    console.log(
-      "%cIsso tecnicamente é invadir a cozinha do restaurante. Respeitamos.",
-      "color:#a1a1aa",
-    );
-    console.log(
-      "%cEstamos contratando gente que faz exatamente isso: vagas@roupadedomingo.com",
-      "color:#58a6ff",
-    );
-    console.log(
-      "%cTotal de easter eggs escondidos: 9. Boa sorte.",
-      "color:#ff9f40",
-    );
-    /* eslint-enable no-console */
-
-    void discover("CONSOLE_CURIOSO");
-  }, [discover]);
 
   const value = useMemo(
     () => ({

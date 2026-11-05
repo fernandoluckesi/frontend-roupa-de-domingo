@@ -8,6 +8,8 @@ import { ordersService, paymentsService } from "../services/orders.service";
 import { extractError } from "../services/http";
 import { lookupZipCode } from "../services/zipCode.service";
 import { formatDeliveryEstimate } from "../utils/shipping";
+import { Checkbox } from "../components/ui/Checkbox";
+import { LEGAL_VERSIONS } from "../config/company";
 import {
   Button,
   Card,
@@ -178,6 +180,8 @@ export default function Checkout() {
   const zipPrefilled = useRef(false);
   // Padrão: o próprio comprador recebe (nome dos dados pessoais)
   const [selfRecipient, setSelfRecipient] = useState(true);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [termsError, setTermsError] = useState("");
   const [paymentInfo, setPaymentInfo] = useState<{ simulated: boolean } | null>(
     null,
   );
@@ -306,7 +310,9 @@ export default function Checkout() {
     if (form.state.trim().length !== 2) next.state = "UF com 2 letras.";
 
     setErrors(next);
-    return Object.keys(next).length === 0;
+    const termsOk = acceptTerms;
+    setTermsError(termsOk ? "" : "Aceite os termos e a política de trocas para continuar.");
+    return Object.keys(next).length === 0 && termsOk;
   };
 
   const submit = async (event: FormEvent) => {
@@ -330,6 +336,8 @@ export default function Checkout() {
         customerDocument: form.customerDocument.replace(/\D/g, "") || undefined,
         shippingMethod: shippingMethod,
         notes: form.notes.trim() || undefined,
+        acceptTerms: true,
+        termsVersion: LEGAL_VERSIONS.terms,
         shippingAddress: {
           recipient: recipientName,
           zipCode: form.zipCode.replace(/\D/g, ""),
@@ -661,14 +669,45 @@ export default function Checkout() {
                 <span>{formatBRL(totals.totalCents)}</span>
               </Line>
 
+              <div style={{ margin: "12px 0" }}>
+                <Checkbox
+                  id="checkout-terms"
+                  checked={acceptTerms}
+                  onChange={(value) => {
+                    setAcceptTerms(value);
+                    if (value) setTermsError("");
+                  }}
+                  required
+                  invalid={Boolean(termsError)}
+                  errorId={termsError ? "checkout-terms-error" : undefined}
+                >
+                  Li e aceito os{" "}
+                  <Link to="/termos" target="_blank" rel="noopener">
+                    termos de uso
+                  </Link>{" "}
+                  e a{" "}
+                  <Link to="/trocas-e-devolucoes" target="_blank" rel="noopener">
+                    política de trocas e devoluções
+                  </Link>
+                  . Sei que posso desistir em até 7 dias do recebimento.
+                </Checkbox>
+                {termsError && (
+                  <ErrorText id="checkout-terms-error" role="alert">
+                    {termsError}
+                  </ErrorText>
+                )}
+              </div>
+
               <Button $size="lg" $full type="submit" disabled={submitting}>
                 {submitting ? "Redirecionando..." : "Ir para pagamento"}
               </Button>
 
               <Notice>
                 Ao continuar você vai para o ambiente do Mercado Pago, onde
-                escolhe entre Pix, cartão ou boleto. Nenhum dado de cartão passa
-                pela nossa loja.
+                escolhe entre Pix, cartão (em até 12x; juros, se houver, aparecem
+                antes de confirmar) ou boleto. Nenhum dado de cartão passa pela
+                nossa loja. <Link to="/pagamentos">Condições de pagamento</Link> ·{" "}
+                <Link to="/termos#cupons">regras de cupons</Link>.
                 {paymentInfo?.simulated &&
                   " Ambiente local sem credenciais: será aberta a tela de pagamento simulada."}
               </Notice>

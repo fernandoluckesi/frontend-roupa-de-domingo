@@ -26,6 +26,7 @@ ENV BACKEND_INTERNAL_URL=http://backend-roupa-de-domingo.railway.internal:8080
 # Faz a imagem preencher NGINX_LOCAL_RESOLVERS a partir do /etc/resolv.conf (DNS interno)
 ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1
 COPY nginx.railway.conf.template /etc/nginx/templates/default.conf.template
+COPY nginx/security-headers.inc /etc/nginx/conf.d/security-headers.inc
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

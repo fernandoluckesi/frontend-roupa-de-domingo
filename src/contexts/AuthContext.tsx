@@ -7,48 +7,66 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { authService } from "../services/auth.service";
-import { getToken, setToken, setUnauthorizedHandler } from "../services/http";
+import { authService, type RegisterInput } from "../services/auth.service";
+import { hasSessionHint, setSessionHint, setUnauthorizedHandler } from "../services/http";
 import type { User } from "../types";
+
+export type RegisterPayload = RegisterInput;
 
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (payload: {
-    email: string;
-    password: string;
-    name: string;
-    phone?: string;
-    document?: string;
-  }) => Promise<void>;
-  logout: () => void;
+  login: (email: string, password: string, otp?: string) => Promise<void>;
+  register: (payload: RegisterPayload) => Promise<void>;
+  logout: () => Promise<void>;
+  /** Sai de todos os dispositivos (revoga todas as sessões no servidor) */
+  logoutEverywhere: () => Promise<void>;
   refresh: () => Promise<void>;
+  /** Atualiza o usuário em memória depois de uma operação que já devolveu o perfil */
+  setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(Boolean(getToken()));
+  const [loading, setLoading] = useState(hasSessionHint());
 
-  const logout = useCallback(() => {
-    setToken(null);
+  const clearLocal = useCallback(() => {
+    setSessionHint(false);
     setUser(null);
   }, []);
 
+  const logout = useCallback(async () => {
+    try {
+      await authService.logout();
+    } catch {
+      /* mesmo offline, a sessão local sai */
+    } finally {
+      clearLocal();
+    }
+  }, [clearLocal]);
+
+  const logoutEverywhere = useCallback(async () => {
+    try {
+      await authService.logoutAll();
+    } finally {
+      clearLocal();
+    }
+  }, [clearLocal]);
+
   const refresh = useCallback(async () => {
-    if (!getToken()) {
+    if (!hasSessionHint()) {
       setUser(null);
       return;
     }
     try {
       setUser(await authService.me());
     } catch {
-      logout();
+      clearLocal();
     }
-  }, [logout]);
+  }, [clearLocal]);
 
   useEffect(() => {
     setUnauthorizedHandler(() => setUser(null));
@@ -58,26 +76,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void refresh().finally(() => setLoading(false));
   }, [refresh]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const session = await authService.login(email, password);
-    setToken(session.accessToken);
+  const login = useCallback(async (email: string, password: string, otp?: string) => {
+    const session = await authService.login(email, password, otp);
+    setSessionHint(true);
     setUser(session.user);
   }, []);
 
-  const register = useCallback(
-    async (payload: {
-      email: string;
-      password: string;
-      name: string;
-      phone?: string;
-      document?: string;
-    }) => {
-      const session = await authService.register(payload);
-      setToken(session.accessToken);
-      setUser(session.user);
-    },
-    [],
-  );
+  const register = useCallback(async (payload: RegisterPayload) => {
+    const session = await authService.register(payload);
+    setSessionHint(true);
+    setUser(session.user);
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -87,9 +96,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       logout,
+      logoutEverywhere,
       refresh,
+      setUser,
     }),
-    [user, loading, login, register, logout, refresh],
+    [user, loading, login, register, logout, logoutEverywhere, refresh],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

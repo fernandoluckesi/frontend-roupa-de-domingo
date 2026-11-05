@@ -36,7 +36,8 @@ export const theme: AppTheme = {
     border: "#2e2e36",
     text: "#f4f4f5",
     textSoft: "#a1a1aa",
-    textFaint: "#6b6b74",
+    // Contraste WCAG AA (>= 4.5:1) sobre bg, bgSoft e surface
+    textFaint: "#8b8b95",
     accent: "#d7ff3e",
     accentDark: "#b2d61f",
     accentText: "#121212",
@@ -88,11 +89,14 @@ export const sundayTheme: AppTheme = {
     surfaceHover: "#f6f4ef",
     border: "#d9d4c9",
     text: "#2b2a27",
-    textSoft: "#6c6a63",
-    textFaint: "#9b988f",
-    accent: "#c3a46a",
-    accentDark: "#a4874f",
+    // Tons ajustados para contraste WCAG AA no fundo claro
+    textSoft: "#5c5a54",
+    textFaint: "#6a675f",
+    accent: "#7a5a1c",
+    accentDark: "#5f4615",
     accentText: "#ffffff",
+    danger: "#b42318",
+    success: "#17703a",
   },
 };
 
@@ -108,7 +112,9 @@ export const chaosTheme: AppTheme = {
     border: "#54107f",
     accent: "#ff2bd1",
     accentDark: "#d0149f",
-    accentText: "#ffffff",
+    // Texto escuro sobre o rosa: branco dava 3.2:1 (abaixo do AA)
+    accentText: "#15021f",
+    textFaint: "#9a8fa6",
   },
 };
 

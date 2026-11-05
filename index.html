@@ -3,22 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Meta tags por rota: em produção o nginx troca o bloco abaixo pelo trecho
+      gerado em /api/seo/head (título, descrição, canonical, Open Graph, JSON-LD),
+      para robôs e previews de link que não executam JavaScript. Em dev o bloco
+      padrão aparece como está e o react-helmet-async ajusta no navegador.
+    -->
+    <!--# block name="seo_default" -->
     <title>Roupa de Domingo — estampas com humor ácido</title>
     <meta
       name="description"
-      content="Camisetas, canecas e capas de celular com estampas de humor ácido. Produção on-demand, entrega direta da estamparia."
+      content="Camisetas, moletons, canecas, capas de celular e garrafas com estampas de humor ácido. Produção sob demanda e entrega para todo o Brasil."
     />
-    <meta name="theme-color" content="#111111" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Space+Grotesk:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
+    <meta property="og:image" content="/og-default.png" />
+    <!--# endblock -->
+    <!--# include virtual="/__seo/head?path=$request_uri" stub="seo_default" -->
+    <meta name="theme-color" content="#0f0f10" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <!--
       Olá. Você abriu o código-fonte de uma loja de camiseta.
       Isso diz mais sobre você do que qualquer estampa que vendemos.
-      Existem 9 easter eggs. Este não é um deles. Tente o console.
+      Existem 8 easter eggs. Este não é um deles.
     -->
   </head>
   <body>

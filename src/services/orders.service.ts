@@ -18,6 +18,9 @@ export interface CheckoutPayload {
   };
   shippingMethod?: "economico" | "expresso";
   notes?: string;
+  /** Aceite dos termos e da política de trocas no checkout (vale para convidado) */
+  acceptTerms: boolean;
+  termsVersion: string;
 }
 
 export const ordersService = {

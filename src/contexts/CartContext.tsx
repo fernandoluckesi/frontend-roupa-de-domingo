@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -12,6 +13,7 @@ import { extractError } from "../services/http";
 import { useToast } from "./ToastContext";
 import { useAuth } from "./AuthContext";
 import { useEasterEggs } from "./EasterEggContext";
+import { hasConsent } from "./ConsentContext";
 import type { Cart } from "../types";
 
 interface CartContextValue {
@@ -23,7 +25,6 @@ interface CartContextValue {
   addItem: (
     variantId: string,
     quantity?: number,
-    customText?: string,
     options?: { silent?: boolean },
   ) => Promise<boolean>;
   updateItem: (itemId: string, quantity: number) => Promise<void>;
@@ -53,6 +54,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [zipCode, setZipCode] = useState(
     () => localStorage.getItem("rd:zipCode") ?? "",
   );
+  const emptyViewsMemory = useRef(0);
   const [shippingMethod, setShippingMethod] = useState<
     "economico" | "expresso"
   >("economico");
@@ -88,13 +90,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     async (
       variantId: string,
       quantity = 1,
-      customText?: string,
       options?: { silent?: boolean },
     ) => {
       try {
-        handleResult(
-          await cartService.addItem(variantId, quantity, customText),
-        );
+        handleResult(await cartService.addItem(variantId, quantity));
         if (options?.silent) return true;
         push({
           variant: "success",
@@ -216,8 +215,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   /** Easter egg #4: carrinho vazio aberto três vezes na mesma sessão. */
   const registerEmptyCartView = useCallback(() => {
-    const views = Number(sessionStorage.getItem(EMPTY_VIEWS_KEY) ?? "0") + 1;
-    sessionStorage.setItem(EMPTY_VIEWS_KEY, String(views));
+    // Sem consentimento de preferências, a contagem fica só na memória da aba
+    const stored = hasConsent("preferences") ? Number(sessionStorage.getItem(EMPTY_VIEWS_KEY) ?? "0") : emptyViewsMemory.current;
+    const views = stored + 1;
+    emptyViewsMemory.current = views;
+    if (hasConsent("preferences")) sessionStorage.setItem(EMPTY_VIEWS_KEY, String(views));
     if (views === 3) void discover("CARRINHO_VAZIO_TRES_VEZES");
   }, [discover]);
 

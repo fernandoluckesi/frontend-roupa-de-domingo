@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { Container } from "../ui/Layout";
@@ -8,6 +8,12 @@ import { useCart } from "../../contexts/CartContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEasterEggs } from "../../contexts/EasterEggContext";
 import { useClickStreak } from "../../hooks/useEasterEggTriggers";
+import { Icon } from "../ui/Icon";
+import { MobileMenu } from "./MobileMenu";
+
+/** Abre o menu lateral de qualquer lugar (ex.: botão "Filtrar" do catálogo no mobile). */
+export const openMobileMenu = (section?: "filters") =>
+  window.dispatchEvent(new CustomEvent("rd:open-menu", { detail: section ?? null }));
 
 const Bar = styled.header`
   position: sticky;
@@ -33,6 +39,98 @@ const Inner = styled(Container)`
   align-items: center;
   gap: ${({ theme }) => theme.spacing(5)};
   height: 72px;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    gap: ${({ theme }) => theme.spacing(2)};
+    height: 60px;
+  }
+`;
+
+const MenuButton = styled.button`
+  display: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-left: -8px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  color: ${({ theme }) => theme.colors.text};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.surface};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    display: grid;
+  }
+`;
+
+/** Busca em linha própria, largura total, abaixo do header no mobile */
+const MobileSearch = styled.form`
+  display: none;
+  padding: 0 ${({ theme }) => theme.spacing(4)} ${({ theme }) => theme.spacing(3)};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    display: block;
+  }
+`;
+
+const SearchField = styled.div`
+  position: relative;
+
+  svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: ${({ theme }) => theme.colors.textFaint};
+    pointer-events: none;
+  }
+
+  input {
+    padding-left: 40px;
+  }
+`;
+
+const IconLink = styled(Link)`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0 8px;
+  border-radius: ${({ theme }) => theme.radius.md};
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  transition: ${({ theme }) => theme.transition};
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.accent};
+    background: ${({ theme }) => theme.colors.surface};
+  }
+
+  .name {
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    .name {
+      max-width: 72px;
+    }
+  }
+`;
+
+const DesktopOnly = styled.div`
+  display: contents;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    display: none;
+  }
 `;
 
 const Logo = styled.button`
@@ -90,28 +188,10 @@ const Actions = styled.div`
   }
 `;
 
-const CartButton = styled(Link)`
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 14px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: ${({ theme }) => theme.transition};
-
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.accent};
-    color: ${({ theme }) => theme.colors.accent};
-  }
-`;
-
 const Count = styled.em`
   position: absolute;
-  top: -7px;
-  right: -7px;
+  top: 0;
+  right: 0;
   min-width: 20px;
   height: 20px;
   padding: 0 5px;
@@ -131,6 +211,18 @@ export function Header() {
   const { user, logout } = useAuth();
   const { discover, themeMode, setThemeMode, progress } = useEasterEggs();
   const [search, setSearch] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuSection, setMenuSection] = useState<"filters" | null>(null);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      setMenuSection((event as CustomEvent<"filters" | null>).detail ?? null);
+      setMenuOpen(true);
+    };
+    window.addEventListener("rd:open-menu", onOpen);
+    return () => window.removeEventListener("rd:open-menu", onOpen);
+  }, []);
 
   // Easter egg #2: sete cliques no logo ligam o "modo domingo de manhã"
   const handleLogoClick = useClickStreak(7, () => {
@@ -151,6 +243,19 @@ export function Header() {
     <Bar>
       <Strip>Frete grátis acima de R$ 249</Strip>
       <Inner>
+        <MenuButton
+          type="button"
+          aria-label="Abrir menu"
+          aria-expanded={menuOpen}
+          aria-controls="mobile-menu"
+          onClick={() => {
+            setMenuSection(null);
+            setMenuOpen(true);
+          }}
+        >
+          <Icon name="menu" size={26} />
+        </MenuButton>
+
         <Logo
           type="button"
           onClick={() => {
@@ -176,52 +281,62 @@ export function Header() {
         </Nav>
 
         <SearchForm onSubmit={submitSearch} role="search">
-          <Input
-            type="search"
-            placeholder="Busque por frase, humor, produto..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Buscar produtos"
-          />
+          <SearchField>
+            <Icon name="search" size={18} />
+            <Input
+              type="search"
+              placeholder="Busque por frase, humor, produto..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Buscar produtos"
+            />
+          </SearchField>
         </SearchForm>
 
         <Actions>
           {user ? (
             <>
-              <Button
-                as={Link}
-                to="/conta"
-                $variant="ghost"
-                $size="sm"
-                style={{ textDecoration: "none" }}
-              >
-                {user.name.split(" ")[0]}
-              </Button>
-              <Button $variant="ghost" $size="sm" onClick={logout}>
-                Sair
-              </Button>
+              <IconLink to="/conta" aria-label={`Minha conta (${user.name.split(" ")[0]})`}>
+                <Icon name="user" />
+                <span className="name">{user.name.split(" ")[0]}</span>
+              </IconLink>
+              <DesktopOnly>
+                <Button $variant="ghost" $size="sm" onClick={() => void logout()}>
+                  Sair
+                </Button>
+              </DesktopOnly>
             </>
           ) : (
-            <Button
-              as={Link}
-              to="/entrar"
-              $variant="ghost"
-              $size="sm"
-              style={{ textDecoration: "none" }}
-            >
-              Entrar
-            </Button>
+            <IconLink to="/entrar" aria-label="Entrar">
+              <Icon name="user" />
+              <span className="name">Entrar</span>
+            </IconLink>
           )}
 
-          <CartButton
+          <IconLink
             to="/carrinho"
-            aria-label={`Carrinho com ${itemCount} itens`}
+            aria-label={itemCount > 0 ? `Carrinho com ${itemCount} ${itemCount === 1 ? "item" : "itens"}` : "Carrinho vazio"}
           >
-            Carrinho
-            {itemCount > 0 && <Count>{itemCount}</Count>}
-          </CartButton>
+            <Icon name="cart" size={26} />
+            {itemCount > 0 && <Count aria-hidden="true">{itemCount > 99 ? "99+" : itemCount}</Count>}
+          </IconLink>
         </Actions>
       </Inner>
+
+      <MobileSearch onSubmit={submitSearch} role="search">
+        <SearchField>
+          <Icon name="search" size={18} />
+          <Input
+            type="search"
+            placeholder="Estou buscando..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Buscar produtos"
+          />
+        </SearchField>
+      </MobileSearch>
+
+      <MobileMenu open={menuOpen} onClose={closeMenu} focusSection={menuSection} />
     </Bar>
   );
 }

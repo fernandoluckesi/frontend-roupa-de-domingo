@@ -102,8 +102,11 @@ export function ProductCard({ product }: { product: Product }) {
         {product.images[0] ? (
           <img
             src={product.images[0].url}
-            alt={product.images[0].alt}
+            alt={product.images[0].alt || product.name}
             loading="lazy"
+            decoding="async"
+            width={600}
+            height={600}
           />
         ) : null}
         {product.isSecret && <Flag>secreto</Flag>}

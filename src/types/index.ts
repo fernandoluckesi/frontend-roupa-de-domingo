@@ -19,6 +19,8 @@ export interface ProductImage {
   id?: string;
   url: string;
   alt: string;
+  /** Cor da variante que aparece na foto; sem cor = vale para todas */
+  color?: string | null;
   position?: number;
 }
 
@@ -165,6 +167,35 @@ export interface User {
   humorLevel: number;
   addresses?: Address[];
   stats?: { orders: number; easterEggsFound: number };
+  emailVerifiedAt?: string | null;
+  marketingOptIn?: boolean;
+  termsVersion?: string | null;
+  privacyVersion?: string | null;
+  twoFactorEnabled?: boolean;
+}
+
+export type ReturnType = "REGRET" | "DEFECT";
+export type ReturnStatus =
+  | "REQUESTED"
+  | "APPROVED"
+  | "REJECTED"
+  | "IN_TRANSIT"
+  | "RECEIVED"
+  | "REFUNDED"
+  | "EXCHANGED";
+
+export interface ReturnRequest {
+  id: string;
+  protocol: string;
+  type: ReturnType;
+  status: ReturnStatus;
+  reason: string;
+  items: { orderItemId: string; quantity: number }[];
+  reverseCode?: string | null;
+  refundCents?: number | null;
+  resolution?: string | null;
+  timeline: { status: string; at: string; note?: string }[];
+  createdAt: string;
 }
 
 export interface OrderItem {
@@ -226,6 +257,15 @@ export interface Order {
     sentAt?: string | null;
   } | null;
   coupon?: { code: string; description: string } | null;
+  invoice?: {
+    status: "PENDING" | "ISSUED" | "ERROR" | "CANCELLED";
+    number?: string | null;
+    series?: string | null;
+    accessKey?: string | null;
+    pdfUrl?: string | null;
+    issuedAt?: string | null;
+  } | null;
+  returns?: ReturnRequest[];
 }
 
 export interface CheckoutResponse {

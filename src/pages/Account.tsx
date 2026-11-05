@@ -1,3 +1,4 @@
+import { PrivacySecurityPanel } from "../components/account/PrivacySecurityPanel";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -249,7 +250,7 @@ export default function Account() {
           </Stat>
           <Stat>
             <strong>
-              {progress ? `${progress.found}/${progress.total}` : "0/9"}
+              {progress ? `${progress.found}/${progress.total}` : "0/8"}
             </strong>
             <small>easter eggs</small>
           </Stat>
@@ -368,6 +369,8 @@ export default function Account() {
             Meus troféus
           </Button>
         </Stack>
+
+        <PrivacySecurityPanel />
 
         <Modal
           open={modalOpen}

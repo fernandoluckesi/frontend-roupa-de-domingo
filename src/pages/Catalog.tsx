@@ -18,6 +18,8 @@ import {
 } from "../components/ui";
 import { useDebouncedValue } from "../hooks/useEasterEggTriggers";
 import { useEasterEggs } from "../contexts/EasterEggContext";
+import { openMobileMenu } from "../components/layout/Header";
+import { Icon } from "../components/ui/Icon";
 import type { Category, HumorOption, Paginated, Product } from "../types";
 
 const Layout = styled.div`
@@ -31,24 +33,72 @@ const Layout = styled.div`
   }
 `;
 
+// Rola junto com a página (sem sticky)
 const Sidebar = styled.aside`
-  position: sticky;
-  top: 120px;
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radius.lg};
   padding: ${({ theme }) => theme.spacing(6)};
 
+  /* Mobile: busca fica no header, filtros no menu lateral e ordenação na barra do catálogo */
   @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
-    position: static;
+    display: none;
   }
 `;
 
-const FilterBlock = styled.div`
+const MobileTools = styled.div`
+  display: none;
+  gap: ${({ theme }) => theme.spacing(2)};
+  width: 100%;
+
+  select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    display: flex;
+  }
+`;
+
+const FilterBlock = styled.div<{ $desktopOnly?: boolean }>`
   margin-bottom: ${({ theme }) => theme.spacing(6)};
 
   &:last-child {
     margin-bottom: 0;
+  }
+
+  /* No mobile, categoria e humor ficam no menu lateral (botão "Filtrar") */
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    display: ${({ $desktopOnly }) => ($desktopOnly ? "none" : "block")};
+  }
+`;
+
+const FilterButton = styled.button`
+  display: none;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing(2)};
+  padding: 9px 14px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  .count {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: ${({ theme }) => theme.radius.pill};
+    background: ${({ theme }) => theme.colors.accent};
+    color: ${({ theme }) => theme.colors.accentText};
+    font-size: 0.72rem;
+    font-weight: 800;
+    display: grid;
+    place-items: center;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    display: inline-flex;
   }
 `;
 
@@ -75,6 +125,31 @@ const Chip = styled.button<{ $active?: boolean }>`
   &:hover {
     border-color: ${({ theme }) => theme.colors.accent};
   }
+`;
+
+const ClearLink = styled.button`
+  display: block;
+  margin: -${({ theme }) => theme.spacing(1)} 0 ${({ theme }) => theme.spacing(3)};
+  padding: 0;
+  background: none;
+  border: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.accent};
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+
+  &:disabled {
+    color: ${({ theme }) => theme.colors.textFaint};
+    text-decoration: none;
+    cursor: default;
+  }
+`;
+
+const Results = styled.div<{ $busy: boolean }>`
+  opacity: ${({ $busy }) => ($busy ? 0.55 : 1)};
+  transition: opacity 0.15s ease;
 `;
 
 const TopBar = styled.div`
@@ -113,6 +188,9 @@ const SORTS = [
   { value: "nome", label: "Nome (A-Z)" },
 ];
 
+const readList = (params: URLSearchParams, key: string) =>
+  (params.get(key) ?? "").split(",").filter(Boolean);
+
 export default function Catalog() {
   const [params, setParams] = useSearchParams();
   const { progress } = useEasterEggs();
@@ -128,7 +206,7 @@ export default function Catalog() {
   const filters = useMemo<ProductFilters>(
     () => ({
       category: params.get("category") ?? undefined,
-      humor: params.get("humor") ?? undefined,
+      humor: params.get("humor") ?? undefined, // listas separadas por vírgula
       search: debouncedSearch || undefined,
       sort: params.get("sort") ?? "recentes",
       page: Number(params.get("page") ?? "1"),
@@ -157,21 +235,40 @@ export default function Catalog() {
       .finally(() => setLoading(false));
   }, [filters]);
 
-  const setParam = useCallback(
-    (key: string, value?: string) => {
-      const next = new URLSearchParams(params);
-      if (value) next.set(key, value);
-      else next.delete(key);
-      if (key !== "page") next.delete("page");
-      setParams(next);
+  // Atualização funcional: cliques seguidos não se sobrescrevem
+  const updateParam = useCallback(
+    (key: string, compute: (current: string[]) => string[]) => {
+      setParams((prev) => {
+        const next = new URLSearchParams(prev);
+        const value = compute(readList(prev, key)).join(",");
+        if (value) next.set(key, value);
+        else next.delete(key);
+        if (key !== "page") next.delete("page");
+        return next;
+      });
     },
-    [params, setParams],
+    [setParams],
   );
 
-  const activeCategory = params.get("category");
-  const activeHumor = params.get("humor");
+  const setParam = useCallback(
+    (key: string, value?: string) => updateParam(key, () => (value ? [value] : [])),
+    [updateParam],
+  );
+
+  // Chip de múltipla escolha: liga/desliga o valor sem mexer nos outros
+  const toggleParam = (key: string, value: string) =>
+    updateParam(key, (current) =>
+      current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current, value],
+    );
+
+  const activeCategories = readList(params, "category");
+  const activeHumors = readList(params, "humor");
   const currentPage = Number(params.get("page") ?? "1");
-  const hasFilters = Boolean(activeCategory || activeHumor || searchInput);
+  const hasFilters = Boolean(
+    activeCategories.length || activeHumors.length || searchInput,
+  );
 
   return (
     <Section $tight>
@@ -189,11 +286,20 @@ export default function Catalog() {
               />
             </FilterBlock>
 
-            <FilterBlock>
+            <FilterBlock $desktopOnly>
               <Label>Categoria</Label>
+              <ClearLink
+                type="button"
+                disabled={activeCategories.length === 0}
+                onClick={() => setParam("category", undefined)}
+              >
+                Limpar categorias
+              </ClearLink>
               <Chips>
                 <Chip
-                  $active={!activeCategory}
+                  type="button"
+                  aria-pressed={activeCategories.length === 0}
+                  $active={activeCategories.length === 0}
                   onClick={() => setParam("category", undefined)}
                 >
                   Todas
@@ -201,8 +307,10 @@ export default function Catalog() {
                 {categories.map((category) => (
                   <Chip
                     key={category.slug}
-                    $active={activeCategory === category.slug}
-                    onClick={() => setParam("category", category.slug)}
+                    type="button"
+                    aria-pressed={activeCategories.includes(category.slug)}
+                    $active={activeCategories.includes(category.slug)}
+                    onClick={() => toggleParam("category", category.slug)}
                   >
                     {category.name}
                   </Chip>
@@ -210,11 +318,20 @@ export default function Catalog() {
               </Chips>
             </FilterBlock>
 
-            <FilterBlock>
+            <FilterBlock $desktopOnly>
               <Label>Tipo de humor</Label>
+              <ClearLink
+                type="button"
+                disabled={activeHumors.length === 0}
+                onClick={() => setParam("humor", undefined)}
+              >
+                Limpar tipos de humor
+              </ClearLink>
               <Chips>
                 <Chip
-                  $active={!activeHumor}
+                  type="button"
+                  aria-pressed={activeHumors.length === 0}
+                  $active={activeHumors.length === 0}
                   onClick={() => setParam("humor", undefined)}
                 >
                   Qualquer
@@ -222,8 +339,10 @@ export default function Catalog() {
                 {humors.map((humor) => (
                   <Chip
                     key={humor.value}
-                    $active={activeHumor === humor.value}
-                    onClick={() => setParam("humor", humor.value)}
+                    type="button"
+                    aria-pressed={activeHumors.includes(humor.value)}
+                    $active={activeHumors.includes(humor.value)}
+                    onClick={() => toggleParam("humor", humor.value)}
                     title={humor.description}
                   >
                     {humor.label}
@@ -265,22 +384,44 @@ export default function Catalog() {
           <div>
             <TopBar>
               <h1>
-                {activeCategory
-                  ? (categories.find((c) => c.slug === activeCategory)?.name ??
-                    "Catálogo")
-                  : "Catálogo completo"}
+                {activeCategories.length === 1
+                  ? (categories.find((c) => c.slug === activeCategories[0])
+                      ?.name ?? "Catálogo")
+                  : activeCategories.length > 1
+                    ? "Catálogo filtrado"
+                    : "Catálogo completo"}
               </h1>
               {data && (
                 <span>
                   {data.meta.total} produto{data.meta.total === 1 ? "" : "s"}
                 </span>
               )}
+              <MobileTools>
+                <FilterButton type="button" onClick={() => openMobileMenu("filters")}>
+                  <Icon name="filter" size={18} />
+                  Filtrar
+                  {activeCategories.length + activeHumors.length > 0 && (
+                    <span className="count">{activeCategories.length + activeHumors.length}</span>
+                  )}
+                </FilterButton>
+                <Select
+                  aria-label="Ordenar por"
+                  value={params.get("sort") ?? "recentes"}
+                  onChange={(e) => setParam("sort", e.target.value)}
+                >
+                  {SORTS.map((sort) => (
+                    <option key={sort.value} value={sort.value}>
+                      {sort.label}
+                    </option>
+                  ))}
+                </Select>
+              </MobileTools>
             </TopBar>
 
-            {loading ? (
+            {loading && !data ? (
               <Loading label="Filtrando sarcasmo..." />
             ) : data && data.items.length > 0 ? (
-              <>
+              <Results $busy={loading} aria-busy={loading}>
                 <ProductGrid>
                   {data.items.map((product) => (
                     <ProductCard key={product.id} product={product} />
@@ -310,7 +451,7 @@ export default function Catalog() {
                     </Button>
                   </Pagination>
                 )}
-              </>
+              </Results>
             ) : (
               <EmptyState
                 emoji="🔍"

@@ -3,7 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
-import { extractError } from "../services/http";
+import { extractError, extractErrorCode } from "../services/http";
+import { Seo } from "../components/seo/Seo";
 import {
   Button,
   Card,
@@ -60,6 +61,8 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [needsOtp, setNeedsOtp] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -69,10 +72,16 @@ export default function Login() {
     setError("");
 
     try {
-      await login(email.trim().toLowerCase(), password);
+      await login(email.trim().toLowerCase(), password, needsOtp ? otp : undefined);
       push({ variant: "success", title: "Bem-vindo de volta" });
       navigate("/conta");
     } catch (err) {
+      const code = extractErrorCode(err);
+      if (code === "OTP_REQUIRED") {
+        setNeedsOtp(true);
+        setError("");
+        return;
+      }
       setError(extractError(err, "Não foi possível entrar."));
     } finally {
       setSubmitting(false);
@@ -81,6 +90,7 @@ export default function Login() {
 
   return (
     <Section $tight>
+      <Seo title="Entrar" description="Entre na sua conta da Roupa de Domingo." path="/entrar" noindex />
       <Container>
         <Panel>
           <h1>Entrar</h1>
@@ -114,7 +124,23 @@ export default function Login() {
               />
             </Field>
 
-            {error && <ErrorText>{error}</ErrorText>}
+            {needsOtp && (
+              <Field>
+                <Label htmlFor="login-otp">Código do aplicativo autenticador</Label>
+                <Input
+                  id="login-otp"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  autoFocus
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                  required
+                />
+              </Field>
+            )}
+
+            {error && <ErrorText role="alert">{error}</ErrorText>}
 
             <Button $full $size="lg" type="submit" disabled={submitting}>
               {submitting ? "Entrando..." : "Entrar"}
@@ -122,15 +148,22 @@ export default function Login() {
           </form>
 
           <p className="alt">
+            <Link to="/esqueci-a-senha">Esqueci minha senha</Link>
+          </p>
+
+          <p className="alt">
             Sem conta ainda? <Link to="/cadastro">Criar agora</Link>
           </p>
 
-          <div className="demo">
-            Ambiente local com dados de demonstração:
-            <br />
-            <strong>cliente@roupadedomingo.com</strong> · senha{" "}
-            <strong>domingo123</strong>
-          </div>
+          {/* Credenciais de demonstração só no ambiente local, nunca em produção */}
+          {import.meta.env.DEV && (
+            <div className="demo">
+              Ambiente local com dados de demonstração:
+              <br />
+              <strong>cliente@roupadedomingo.com</strong> · senha{" "}
+              <strong>domingo123</strong>
+            </div>
+          )}
         </Panel>
       </Container>
     </Section>

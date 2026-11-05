@@ -21,7 +21,11 @@ import {
 } from "../components/ui";
 import { formatBRL, maskZipCode } from "../utils/format";
 import { formatDeliveryEstimate } from "../utils/shipping";
-import type { Product, ProductVariant, ShippingOption } from "../types";
+import type { Product, ProductImage, ProductVariant, ShippingOption } from "../types";
+import { sortVariants, sortedOptionValues } from "../utils/variantOrder";
+import { Seo, absoluteUrl } from "../components/seo/Seo";
+import { Breadcrumb } from "../components/seo/Breadcrumb";
+import { sizeGuideFor } from "../content/sizeGuide";
 
 const Layout = styled.div`
   display: grid;
@@ -110,15 +114,61 @@ const Info = styled.div`
   }
 `;
 
-const Breadcrumb = styled.nav`
-  font-size: 0.82rem;
-  color: ${({ theme }) => theme.colors.textFaint};
-  margin-bottom: ${({ theme }) => theme.spacing(6)};
+const Notice = styled.p`
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: ${({ theme }) => theme.colors.textSoft};
+  border-left: 3px solid ${({ theme }) => theme.colors.accent};
+  padding: ${({ theme }) => theme.spacing(2)} ${({ theme }) => theme.spacing(3)};
+  background: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.radius.sm ?? "6px"};
+  margin-bottom: ${({ theme }) => theme.spacing(5)};
 
-  a:hover {
+  a {
     color: ${({ theme }) => theme.colors.accent};
+    text-decoration: underline;
   }
 `;
+
+const Specs = styled.details`
+  margin-top: ${({ theme }) => theme.spacing(6)};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  padding-top: ${({ theme }) => theme.spacing(4)};
+
+  summary {
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  h3 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: ${({ theme }) => theme.colors.textFaint};
+    margin: ${({ theme }) => theme.spacing(4)} 0 ${({ theme }) => theme.spacing(2)};
+  }
+
+  li {
+    font-size: 0.88rem;
+    color: ${({ theme }) => theme.colors.textSoft};
+    line-height: 1.6;
+    list-style: disc;
+    margin-left: ${({ theme }) => theme.spacing(5)};
+  }
+
+  a {
+    color: ${({ theme }) => theme.colors.accent};
+    text-decoration: underline;
+  }
+`;
+
+/** Categorias produzidas fora do Brasil (ver docs/PRINTFUL-API.md, catálogo completo). */
+const SHIPS_FROM_ABROAD: Record<string, string> = {
+  "capas-de-celular": "Este produto é produzido e enviado do exterior (10 a 25 dias).",
+  garrafas: "Este produto é produzido e enviado do exterior (10 a 15 dias).",
+  moletons: "Alguns tamanhos e cores podem ser produzidos e enviados do exterior quando não há estoque no Brasil.",
+};
 
 const OptionRow = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing(5)};
@@ -228,6 +278,9 @@ const Facts = styled.ul`
   }
 `;
 
+const imageIndexForColor = (images: ProductImage[], color?: string | null) =>
+  Math.max(0, color ? images.findIndex((img) => img.color === color) : 0);
+
 const unique = (values: (string | null | undefined)[]) =>
   Array.from(new Set(values.filter((v): v is string => Boolean(v))));
 
@@ -244,7 +297,6 @@ export default function ProductDetail() {
   const [color, setColor] = useState<string | null>(null);
   const [model, setModel] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [customText, setCustomText] = useState("");
   const [adding, setAdding] = useState<"cart" | "buy" | null>(null);
   const [zipInput, setZipInput] = useState(() => maskZipCode(savedZipCode));
   const [quote, setQuote] = useState<ShippingOption[] | null>(null);
@@ -260,10 +312,12 @@ export default function ProductDetail() {
     void catalogService
       .bySlug(slug)
       .then((data) => {
-        setProduct(data);
-        const first = data.variants[0];
+        const variants = sortVariants(data.variants);
+        setProduct({ ...data, variants });
+        const first = variants[0];
         setSize(first?.size ?? null);
         setColor(first?.color ?? null);
+        setImageIndex(imageIndexForColor(data.images, first?.color));
         setModel(first?.model ?? null);
       })
       .catch(() => setNotFound(true))
@@ -271,7 +325,7 @@ export default function ProductDetail() {
   }, [slug]);
 
   const sizes = useMemo(
-    () => unique(product?.variants.map((v) => v.size) ?? []),
+    () => sortedOptionValues(product?.variants.map((v) => v.size) ?? []),
     [product],
   );
   const colors = useMemo(
@@ -279,7 +333,7 @@ export default function ProductDetail() {
     [product],
   );
   const models = useMemo(
-    () => unique(product?.variants.map((v) => v.model) ?? []),
+    () => sortedOptionValues(product?.variants.map((v) => v.model) ?? []),
     [product],
   );
 
@@ -322,15 +376,19 @@ export default function ProductDetail() {
   const priceCents = selectedVariant?.priceCents ?? product.basePriceCents;
   const image = product.images[imageIndex] ?? product.images[0];
 
+  // Escolher a cor leva a galeria para a foto dessa cor (trocar a foto não muda a cor)
+  const selectColor = (value: string) => {
+    setColor(value);
+    const index = product.images.findIndex((img) => img.color === value);
+    if (index >= 0) setImageIndex(index);
+  };
+
   const handleAdd = async (mode: "cart" | "buy") => {
     if (!selectedVariant) return;
     setAdding(mode);
-    const added = await addItem(
-      selectedVariant.id,
-      quantity,
-      customText || undefined,
-      { silent: mode === "buy" },
-    );
+    const added = await addItem(selectedVariant.id, quantity, {
+      silent: mode === "buy",
+    });
     setAdding(null);
     // Comprar agora: o item já está no carrinho, segue direto para o checkout
     if (added && mode === "buy") navigate("/checkout");
@@ -364,20 +422,61 @@ export default function ProductDetail() {
     }
   };
 
+  const guide = sizeGuideFor(product.category.slug);
+  const abroad = SHIPS_FROM_ABROAD[product.category.slug];
+  const availablePrices = product.variants.filter((v) => v.isAvailable !== false).map((v) => v.priceCents);
+  const lowPrice = availablePrices.length ? Math.min(...availablePrices) : product.basePriceCents;
+  const highPrice = availablePrices.length ? Math.max(...availablePrices) : product.basePriceCents;
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    sku: selectedVariant?.sku ?? product.slug,
+    category: product.category.name,
+    brand: { "@type": "Brand", name: "Roupa de Domingo" },
+    image: product.images.map((img) => absoluteUrl(img.url)),
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "BRL",
+      lowPrice: (lowPrice / 100).toFixed(2),
+      highPrice: (highPrice / 100).toFixed(2),
+      offerCount: product.variants.length || 1,
+      availability: availablePrices.length ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      url: absoluteUrl(`/produto/${product.slug}`),
+    },
+    ...(product.ratingCount > 0
+      ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.ratingCount } }
+      : {}),
+  };
+
   return (
     <Section $tight>
+      <Seo
+        title={product.name}
+        description={product.shortDescription}
+        path={`/produto/${product.slug}`}
+        image={product.images[0]?.url}
+        type="product"
+        noindex={product.isSecret}
+        jsonLd={productJsonLd}
+      />
       <Container>
-        <Breadcrumb>
-          <Link to="/">Início</Link> / <Link to="/catalogo">Catálogo</Link> /{" "}
-          <Link to={`/catalogo?category=${product.category.slug}`}>
-            {product.category.name}
-          </Link>
-        </Breadcrumb>
+        <Breadcrumb
+          items={[
+            { label: "Início", to: "/" },
+            { label: "Catálogo", to: "/catalogo" },
+            { label: product.category.name, to: `/catalogo?category=${product.category.slug}` },
+            { label: product.name, to: `/produto/${product.slug}` },
+          ]}
+        />
 
         <Layout>
           <Gallery>
             <MainImage>
-              {image && <img src={image.url} alt={image.alt} />}
+              {image && (
+                <img src={image.url} alt={image.alt || product.name} width={800} height={800} fetchPriority="high" />
+              )}
             </MainImage>
             {product.images.length > 1 && (
               <Thumbs>
@@ -388,7 +487,7 @@ export default function ProductDetail() {
                     onClick={() => setImageIndex(index)}
                     aria-label={`Imagem ${index + 1}`}
                   >
-                    <img src={img.url} alt={img.alt} />
+                    <img src={img.url} alt={img.alt || `${product.name}, foto ${index + 1}`} width={120} height={120} loading="lazy" />
                   </Thumb>
                 ))}
               </Thumbs>
@@ -401,9 +500,10 @@ export default function ProductDetail() {
             <p className="short">{product.shortDescription}</p>
 
             <p className="price">{formatBRL(priceCents)}</p>
+            {/* Sem "sem juros": o parcelamento é do Mercado Pago e pode ter juros, exibidos antes de pagar */}
             <p className="installment">
-              em até 6x de {formatBRL(Math.ceil(priceCents / 6))} sem juros no
-              Mercado Pago
+              Pix ou cartão em até 12x pelo Mercado Pago (juros do parcelamento, se houver, aparecem antes de você
+              confirmar). <Link to="/pagamentos">Ver condições</Link>
             </p>
 
             <Divider />
@@ -435,7 +535,7 @@ export default function ProductDetail() {
                       key={value}
                       type="button"
                       $active={color === value}
-                      onClick={() => setColor(value)}
+                      onClick={() => selectColor(value)}
                     >
                       {value}
                     </Option>
@@ -461,19 +561,6 @@ export default function ProductDetail() {
                 </Options>
               </OptionRow>
             )}
-
-            <OptionRow>
-              <Label htmlFor="custom-text">
-                Texto personalizado (opcional, até 60 caracteres)
-              </Label>
-              <Input
-                id="custom-text"
-                maxLength={60}
-                placeholder="Algo que você vai se arrepender de estampar"
-                value={customText}
-                onChange={(e) => setCustomText(e.target.value)}
-              />
-            </OptionRow>
 
             <BuyRow>
               <QuantityStepper
@@ -547,13 +634,62 @@ export default function ProductDetail() {
               </p>
             </ShippingBox>
 
+            {abroad && (
+              <Notice role="note">
+                {abroad} Remessas internacionais podem ter tributos de importação cobrados pela Receita Federal na
+                entrega. <Link to="/entrega">Saiba como funciona</Link>.
+              </Notice>
+            )}
+
             <p className="description">{product.description}</p>
+
+            {guide && (
+              <Specs>
+                <summary>{guide.kind === "apparel" ? "Medidas, composição e cuidados" : "Especificações e cuidados"}</summary>
+                {guide.kind === "apparel" ? (
+                  <>
+                    <h3>Composição</h3>
+                    <ul>
+                      {guide.composition.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <>
+                    <h3>Especificações</h3>
+                    <ul>
+                      {guide.specs.map((spec) => (
+                        <li key={spec.label}>
+                          {spec.label}: {spec.value}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+                <h3>Cuidados</h3>
+                <ul>
+                  {guide.care.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <h3>Cor</h3>
+                <ul>
+                  <li>A cor impressa pode variar levemente em relação à tela, conforme o monitor e a impressão.</li>
+                </ul>
+                <p style={{ marginTop: 12 }}>
+                  <Link to="/guia-de-tamanhos">
+                    {guide.kind === "apparel" ? "Ver a tabela de medidas completa" : "Ver o guia completo"}
+                  </Link>
+                </p>
+              </Specs>
+            )}
 
             <Divider />
 
             <Facts>
               <li>SKU {selectedVariant?.sku}</li>
-              <li>Produção sob demanda em 2 a 4 dias úteis</li>
+              <li>Produção sob demanda em 2 a 4 dias úteis, mais o prazo de transporte</li>
               <li>Enviado direto pela estamparia parceira</li>
               <li>Pagamento processado pelo Mercado Pago</li>
               <li>

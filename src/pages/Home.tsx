@@ -222,7 +222,7 @@ export default function Home() {
         <Container>
           <EggStrip>
             <div>
-              <h3>Existem 9 easter eggs escondidos nesta loja</h3>
+              <h3>Existem 8 easter eggs escondidos nesta loja</h3>
               <p>
                 Alguns liberam cupom de verdade. Nenhum deles aparece em menu.
                 Dica gratuita: códigos de videogame dos anos 80 ainda funcionam

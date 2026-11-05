@@ -1,0 +1,16 @@
+# Roupa de Domingo
+User-agent: *
+Allow: /
+# Rotas privadas ou sem valor de busca
+Disallow: /conta
+Disallow: /checkout
+Disallow: /carrinho
+Disallow: /pagamento/
+Disallow: /entrar
+Disallow: /cadastro
+Disallow: /esqueci-a-senha
+Disallow: /redefinir-senha
+Disallow: /verificar-email
+Disallow: /api/
+
+Sitemap: https://frontend-roupa-de-domingo-production.up.railway.app/sitemap.xml

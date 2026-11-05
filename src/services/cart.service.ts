@@ -9,15 +9,10 @@ export const cartService = {
     return data;
   },
 
-  async addItem(
-    variantId: string,
-    quantity = 1,
-    customText?: string,
-  ): Promise<Cart> {
+  async addItem(variantId: string, quantity = 1): Promise<Cart> {
     const { data } = await api.post<Cart>("/cart/items", {
       variantId,
       quantity,
-      customText,
     });
     return data;
   },

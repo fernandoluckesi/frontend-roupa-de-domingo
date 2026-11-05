@@ -196,7 +196,7 @@ export default function CartPage() {
               <Row key={item.id}>
                 <Thumb>
                   {item.imageUrl && (
-                    <img src={item.imageUrl} alt={item.productName} />
+                    <img src={item.imageUrl} alt={item.productName} width={96} height={96} loading="lazy" decoding="async" />
                   )}
                 </Thumb>
 

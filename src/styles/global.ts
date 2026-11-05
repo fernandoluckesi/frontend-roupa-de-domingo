@@ -44,6 +44,37 @@ export const GlobalStyle = createGlobalStyle`
     outline-offset: 2px;
   }
 
+  /* Acessibilidade: atalho de teclado para pular o menu */
+  .skip-link {
+    position: absolute;
+    left: 12px;
+    top: -60px;
+    z-index: 100;
+    padding: 10px 16px;
+    border-radius: ${({ theme }) => theme.radius.md};
+    background: ${({ theme }) => theme.colors.accent};
+    color: ${({ theme }) => theme.colors.accentText};
+    font-weight: 700;
+    transition: top 0.15s ease;
+  }
+
+  .skip-link:focus {
+    top: 12px;
+  }
+
+  main:focus {
+    outline: none;
+  }
+
+  .visually-hidden {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
   ::-webkit-scrollbar { width: 10px; }
   ::-webkit-scrollbar-track { background: ${({ theme }) => theme.colors.bgSoft}; }
   ::-webkit-scrollbar-thumb {

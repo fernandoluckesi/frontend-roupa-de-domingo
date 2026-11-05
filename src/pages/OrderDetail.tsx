@@ -1,3 +1,4 @@
+import { OrderInvoice, OrderReturns } from "../components/account/OrderReturns";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
@@ -231,7 +232,7 @@ export default function OrderDetail() {
               {order.items.map((item) => (
                 <ItemRow key={item.id}>
                   {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.productName} />
+                    <img src={item.imageUrl} alt={item.productName} width={96} height={96} loading="lazy" decoding="async" />
                   ) : (
                     <div />
                   )}
@@ -378,6 +379,9 @@ export default function OrderDetail() {
                 </>
               )}
             </Card>
+
+            <OrderInvoice order={order} />
+            <OrderReturns order={order} onChange={setOrder} />
 
             <Stack $gap={3}>
               {order.status !== "PENDING" && order.status !== "CANCELLED" && (
