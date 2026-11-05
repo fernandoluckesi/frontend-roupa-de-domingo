@@ -1,19 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import styled, { css } from "styled-components";
+import styled, { css, useTheme } from "styled-components";
 import { Icon, type IconName } from "../ui/Icon";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../contexts/CartContext";
 import { useEasterEggs } from "../../contexts/EasterEggContext";
 import { catalogService } from "../../services/catalog.service";
 import type { Category, HumorOption } from "../../types";
+import { RdMonogram } from "../brand/RdMonogram";
 
 const Overlay = styled.div<{ $open: boolean }>`
   position: fixed;
   inset: 0;
   z-index: 300;
-  background: rgba(0, 0, 0, 0.6);
+  background: ${({ theme }) => theme.colors.overlay};
   opacity: ${({ $open }) => ($open ? 1 : 0)};
   pointer-events: ${({ $open }) => ($open ? "auto" : "none")};
   transition: opacity 0.2s ease;
@@ -30,7 +31,7 @@ const Drawer = styled.aside<{ $open: boolean }>`
   flex-direction: column;
   background: ${({ theme }) => theme.colors.bg};
   border-right: 1px solid ${({ theme }) => theme.colors.border};
-  box-shadow: 12px 0 40px rgba(0, 0, 0, 0.45);
+  box-shadow: ${({ theme }) => theme.shadow.drawer};
   transform: translateX(${({ $open }) => ($open ? "0" : "-100%")});
   visibility: ${({ $open }) => ($open ? "visible" : "hidden")};
   transition:
@@ -46,7 +47,8 @@ const Profile = styled.div`
 
   .top {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .close {
@@ -59,7 +61,7 @@ const Profile = styled.div`
   }
 
   .close:hover {
-    background: rgba(0, 0, 0, 0.08);
+    background: ${({ theme }) => theme.colors.accentHover};
   }
 
   .who {
@@ -262,6 +264,7 @@ export interface MobileMenuProps {
  */
 export function MobileMenu({ open, onClose, focusSection }: MobileMenuProps) {
   const { user, logout } = useAuth();
+  const theme = useTheme();
   const { itemCount } = useCart();
   const { progress } = useEasterEggs();
   const location = useLocation();
@@ -385,6 +388,7 @@ export function MobileMenu({ open, onClose, focusSection }: MobileMenuProps) {
       >
         <Profile>
           <div className="top">
+            <RdMonogram size={40} color={theme.colors.accentText} title="Roupa de Domingo" />
             <button ref={closeRef} type="button" className="close" onClick={onClose} aria-label="Fechar menu">
               <Icon name="close" size={24} />
             </button>

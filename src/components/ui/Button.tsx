@@ -64,7 +64,7 @@ export const Button = styled.button<{
           border-color: ${theme.colors.danger};
           &:hover:not(:disabled) {
             background: ${theme.colors.danger};
-            color: #fff;
+            color: ${theme.colors.dangerText};
           }
         `;
       default:

@@ -15,7 +15,7 @@ const Banner = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radius.lg};
   padding: ${({ theme }) => theme.spacing(5)};
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  box-shadow: ${({ theme }) => theme.shadow.lg};
 
   h2 {
     font-size: 1rem;

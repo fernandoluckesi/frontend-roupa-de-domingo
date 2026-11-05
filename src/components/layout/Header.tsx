@@ -142,13 +142,22 @@ const Logo = styled.button`
   text-align: left;
   flex-shrink: 0;
 
-  span {
+  .tagline {
     display: block;
+    margin-top: 5px;
     color: ${({ theme }) => theme.colors.accent};
     font-size: 0.66rem;
     font-weight: 600;
     letter-spacing: 0.14em;
     text-transform: uppercase;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    font-size: 1rem;
+
+    .tagline {
+      display: none;
+    }
   }
 `;
 
@@ -264,8 +273,10 @@ export function Header() {
           }}
           aria-label="Roupa de Domingo - início"
         >
-          Roupa de Domingo
-          <span>estampas sem anestesia</span>
+          <span>
+            Roupa de Domingo
+            <span className="tagline">estampas sem anestesia</span>
+          </span>
         </Logo>
 
         <Nav>

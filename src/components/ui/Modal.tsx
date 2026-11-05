@@ -4,7 +4,7 @@ import styled from "styled-components";
 const Overlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.72);
+  background: ${({ theme }) => theme.colors.overlayStrong};
   backdrop-filter: blur(3px);
   display: flex;
   align-items: center;

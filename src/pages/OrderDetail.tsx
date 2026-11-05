@@ -1,7 +1,7 @@
 import { OrderInvoice, OrderReturns } from "../components/account/OrderReturns";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { ordersService, paymentsService } from "../services/orders.service";
 import { useToast } from "../contexts/ToastContext";
 import { extractError } from "../services/http";
@@ -17,7 +17,6 @@ import {
   Stack,
 } from "../components/ui";
 import { formatBRL, formatDateTime, maskZipCode } from "../utils/format";
-import { STATUS_TONE } from "./Orders";
 import type { Order } from "../types";
 
 const Layout = styled.div`
@@ -141,6 +140,7 @@ const AddressBlock = styled.p`
 `;
 
 export default function OrderDetail() {
+  const theme = useTheme();
   const { number = "" } = useParams();
   const { push } = useToast();
 
@@ -222,7 +222,7 @@ export default function OrderDetail() {
       <Container>
         <Head>
           <h1>{order.number}</h1>
-          <Badge $color={STATUS_TONE[order.status]}>{order.statusLabel}</Badge>
+          <Badge $color={theme.orderStatus[order.status]}>{order.statusLabel}</Badge>
         </Head>
 
         <Layout>

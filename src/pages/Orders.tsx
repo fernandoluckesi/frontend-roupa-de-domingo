@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { ordersService } from "../services/orders.service";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -13,7 +13,7 @@ import {
   Section,
 } from "../components/ui";
 import { formatBRL, formatDate } from "../utils/format";
-import type { Order, OrderStatus } from "../types";
+import type { Order } from "../types";
 
 const Row = styled(Card)`
   display: grid;
@@ -57,18 +57,8 @@ const Row = styled(Card)`
   }
 `;
 
-export const STATUS_TONE: Record<OrderStatus, string> = {
-  PENDING: "#ffb020",
-  PAID: "#3ddc84",
-  IN_PRODUCTION: "#58a6ff",
-  SHIPPED: "#58a6ff",
-  DELIVERED: "#3ddc84",
-  CANCELLED: "#6b6b74",
-  REFUNDED: "#6b6b74",
-  FAILED: "#ff5c5c",
-};
-
 export default function Orders() {
+  const theme = useTheme();
   const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,7 +120,7 @@ export default function Orders() {
             <div>
               <div className="meta">
                 <strong>{order.number}</strong>
-                <Badge $color={STATUS_TONE[order.status]}>
+                <Badge $color={theme.orderStatus[order.status]}>
                   {order.statusLabel}
                 </Badge>
                 <small>{formatDate(order.createdAt)}</small>

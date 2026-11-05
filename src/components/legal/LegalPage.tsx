@@ -106,15 +106,15 @@ const Article = styled.article`
     th,
     td,
     strong {
-      color: #000 !important;
+      color: ${({ theme }) => theme.print.text} !important;
     }
 
     th {
-      background: #eee !important;
+      background: ${({ theme }) => theme.print.tableHead} !important;
     }
 
     a {
-      color: #000 !important;
+      color: ${({ theme }) => theme.print.text} !important;
     }
 
     .print-actions {
@@ -136,7 +136,7 @@ const PrintOnlyDocument = createGlobalStyle`
     }
 
     body {
-      background: #fff !important;
+      background: ${({ theme }) => theme.print.bg} !important;
     }
   }
 `;

@@ -7,6 +7,7 @@ import "@fontsource/space-grotesk/latin-500.css";
 import "@fontsource/space-grotesk/latin-700.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { reloadForStaleChunk } from "./utils/lazyWithReload";
 import { BrowserRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import App from "./App";
@@ -27,6 +28,11 @@ const container = document.getElementById("root");
 if (!container) {
   throw new Error("Elemento #root não encontrado. Alguém mexeu no index.html.");
 }
+
+// Vite avisa quando falha ao pré-carregar um arquivo (deploy novo): recarrega uma vez
+window.addEventListener("vite:preloadError", (event) => {
+  if (reloadForStaleChunk()) event.preventDefault();
+});
 
 createRoot(container).render(
   <StrictMode>

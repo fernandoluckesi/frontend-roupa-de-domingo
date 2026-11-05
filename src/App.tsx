@@ -1,5 +1,7 @@
-import { Suspense, lazy, useCallback } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Suspense, useCallback } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { lazyWithReload } from "./utils/lazyWithReload";
 import { ThemeProvider } from "styled-components";
 import { GlobalStyle } from "./styles/global";
 import { themesByMode } from "./styles/theme";
@@ -11,35 +13,36 @@ import { useKonamiCode, useTypedPhrase } from "./hooks/useEasterEggTriggers";
 import { CookieBanner } from "./components/legal/CookieBanner";
 import { RouteSeo } from "./components/seo/RouteSeo";
 
-const Home = lazy(() => import("./pages/Home"));
-const Catalog = lazy(() => import("./pages/Catalog"));
-const ProductDetail = lazy(() => import("./pages/ProductDetail"));
-const CartPage = lazy(() => import("./pages/CartPage"));
-const Checkout = lazy(() => import("./pages/Checkout"));
-const PaymentResult = lazy(() => import("./pages/PaymentResult"));
-const MockCheckout = lazy(() => import("./pages/MockCheckout"));
-const Login = lazy(() => import("./pages/Login"));
-const Register = lazy(() => import("./pages/Register"));
-const Account = lazy(() => import("./pages/Account"));
-const Orders = lazy(() => import("./pages/Orders"));
-const OrderDetail = lazy(() => import("./pages/OrderDetail"));
-const Trophies = lazy(() => import("./pages/Trophies"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
-const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
-const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
-const Terms = lazy(() => import("./pages/legal/Terms"));
-const Privacy = lazy(() => import("./pages/legal/Privacy"));
-const Returns = lazy(() => import("./pages/legal/Returns"));
-const Cookies = lazy(() => import("./pages/legal/Cookies"));
-const About = lazy(() => import("./pages/legal/About"));
-const Contact = lazy(() => import("./pages/legal/Contact"));
-const Shipping = lazy(() => import("./pages/legal/Shipping"));
-const SizeGuide = lazy(() => import("./pages/legal/SizeGuide"));
-const Payments = lazy(() => import("./pages/legal/Payments"));
+const Home = lazyWithReload(() => import("./pages/Home"));
+const Catalog = lazyWithReload(() => import("./pages/Catalog"));
+const ProductDetail = lazyWithReload(() => import("./pages/ProductDetail"));
+const CartPage = lazyWithReload(() => import("./pages/CartPage"));
+const Checkout = lazyWithReload(() => import("./pages/Checkout"));
+const PaymentResult = lazyWithReload(() => import("./pages/PaymentResult"));
+const MockCheckout = lazyWithReload(() => import("./pages/MockCheckout"));
+const Login = lazyWithReload(() => import("./pages/Login"));
+const Register = lazyWithReload(() => import("./pages/Register"));
+const Account = lazyWithReload(() => import("./pages/Account"));
+const Orders = lazyWithReload(() => import("./pages/Orders"));
+const OrderDetail = lazyWithReload(() => import("./pages/OrderDetail"));
+const Trophies = lazyWithReload(() => import("./pages/Trophies"));
+const NotFound = lazyWithReload(() => import("./pages/NotFound"));
+const ForgotPassword = lazyWithReload(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = lazyWithReload(() => import("./pages/auth/ResetPassword"));
+const VerifyEmail = lazyWithReload(() => import("./pages/auth/VerifyEmail"));
+const Terms = lazyWithReload(() => import("./pages/legal/Terms"));
+const Privacy = lazyWithReload(() => import("./pages/legal/Privacy"));
+const Returns = lazyWithReload(() => import("./pages/legal/Returns"));
+const Cookies = lazyWithReload(() => import("./pages/legal/Cookies"));
+const About = lazyWithReload(() => import("./pages/legal/About"));
+const Contact = lazyWithReload(() => import("./pages/legal/Contact"));
+const Shipping = lazyWithReload(() => import("./pages/legal/Shipping"));
+const SizeGuide = lazyWithReload(() => import("./pages/legal/SizeGuide"));
+const Payments = lazyWithReload(() => import("./pages/legal/Payments"));
 
 export default function App() {
   const { themeMode, setThemeMode, discover } = useEasterEggs();
+  const location = useLocation();
 
   // Easter egg #1: Konami code liga o modo caos
   const handleKonami = useCallback(() => {
@@ -65,6 +68,7 @@ export default function App() {
       </a>
       <Header />
       <main id="conteudo" tabIndex={-1}>
+        <ErrorBoundary key={location.pathname}>
         <Suspense fallback={<Loading />}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -102,6 +106,7 @@ export default function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
+        </ErrorBoundary>
       </main>
       <Footer />
       <ToastViewport />
