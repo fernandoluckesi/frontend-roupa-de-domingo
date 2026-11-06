@@ -6,11 +6,14 @@ import { useConsent } from "../../contexts/ConsentContext";
 
 const Banner = styled.div`
   position: fixed;
-  left: ${({ theme }) => theme.spacing(4)};
-  bottom: ${({ theme }) => theme.spacing(4)};
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   z-index: 60;
-  max-width: 440px;
+  max-width: 660px;
   width: calc(100% - ${({ theme }) => theme.spacing(8)});
+  max-height: calc(100dvh - ${({ theme }) => theme.spacing(8)});
+  overflow-y: auto;
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radius.lg};
