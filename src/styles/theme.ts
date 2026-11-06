@@ -107,6 +107,7 @@ export const theme: AppTheme = {
     EXISTENCIAL: palette.violet,
     ABSURDO: palette.mint,
     PASSIVO_AGRESSIVO: palette.pink,
+    MEMES: palette.blue,
   },
   orderStatus: {
     PENDING: palette.amber,

@@ -3,7 +3,8 @@ export type Humor =
   | "SARCASTICO"
   | "EXISTENCIAL"
   | "ABSURDO"
-  | "PASSIVO_AGRESSIVO";
+  | "PASSIVO_AGRESSIVO"
+  | "MEMES";
 
 export type OrderStatus =
   | "PENDING"

@@ -53,4 +53,5 @@ export const HUMOR_LABELS: Record<string, string> = {
   EXISTENCIAL: "Existencial",
   ABSURDO: "Absurdo",
   PASSIVO_AGRESSIVO: "Passivo-agressivo",
+  MEMES: "Memes",
 };
