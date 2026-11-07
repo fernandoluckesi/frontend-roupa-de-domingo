@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
 import { extractError, extractErrorCode } from "../services/http";
+import { setPendingSignupEmail } from "../utils/pendingSignup";
 import { Seo } from "../components/seo/Seo";
 import {
   Button,
@@ -77,6 +78,13 @@ export default function Login() {
       navigate("/conta");
     } catch (err) {
       const code = extractErrorCode(err);
+      if (code === "EMAIL_NOT_VERIFIED") {
+        const pending = email.trim().toLowerCase();
+        setPendingSignupEmail(pending);
+        push({ variant: "info", title: "Confirme o seu cadastro", message: "Enviamos um código de 6 dígitos para o seu e-mail." });
+        navigate("/confirmar-cadastro", { state: { email: pending } });
+        return;
+      }
       if (code === "OTP_REQUIRED") {
         setNeedsOtp(true);
         setError("");

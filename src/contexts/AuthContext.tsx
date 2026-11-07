@@ -18,7 +18,10 @@ interface AuthContextValue {
   loading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string, otp?: string) => Promise<void>;
-  register: (payload: RegisterPayload) => Promise<void>;
+  /** Cria a conta e envia o código; devolve o e-mail que precisa ser confirmado */
+  register: (payload: RegisterPayload) => Promise<string>;
+  /** Confirma o cadastro com o código do e-mail e abre a sessão */
+  confirmRegistration: (email: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
   /** Sai de todos os dispositivos (revoga todas as sessões no servidor) */
   logoutEverywhere: () => Promise<void>;
@@ -83,7 +86,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const register = useCallback(async (payload: RegisterPayload) => {
-    const session = await authService.register(payload);
+    const { email } = await authService.register(payload);
+    return email;
+  }, []);
+
+  const confirmRegistration = useCallback(async (email: string, code: string) => {
+    const session = await authService.confirmRegistration(email, code);
     setSessionHint(true);
     setUser(session.user);
   }, []);
@@ -95,12 +103,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: Boolean(user),
       login,
       register,
+      confirmRegistration,
       logout,
       logoutEverywhere,
       refresh,
       setUser,
     }),
-    [user, loading, login, register, logout, logoutEverywhere, refresh],
+    [user, loading, login, register, confirmRegistration, logout, logoutEverywhere, refresh],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

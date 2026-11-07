@@ -15,3 +15,4 @@ export { QuantityStepper } from "./QuantityStepper";
 export { ToastViewport } from "./ToastViewport";
 export { EmptyState } from "./EmptyState";
 export { Checkbox } from "./Checkbox";
+export { CodeInput } from "./CodeInput";

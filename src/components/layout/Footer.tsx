@@ -122,9 +122,9 @@ export function Footer() {
           <Column>
             <strong>Roupa de Domingo</strong>
             <p>
-              Estampas de humor ácido em camisetas, moletons, canecas, capas e garrafas. Produzimos
-              sob demanda com parceiro de estamparia, então nada fica encalhado
-              no estoque — só as nossas ideias.
+              Estampas de humor ácido em camisetas, moletons, canecas, capas e
+              garrafas. Produzimos sob demanda com parceiro de estamparia, então
+              nada fica encalhado no estoque — só as nossas ideias.
             </p>
           </Column>
 
@@ -194,20 +194,20 @@ export function Footer() {
                   Preferências de cookies
                 </LinkButton>
               </li>
-              <li>
-                <span>Arrependimento: 7 dias · Defeito: 90 dias</span>
-              </li>
             </ul>
           </Column>
         </Grid>
 
         <Identification aria-label="Identificação do fornecedor">
-          {COMPANY.legalName} · CNPJ {COMPANY.cnpj} · IE {COMPANY.stateRegistration}
+          {COMPANY.legalName} · CNPJ {COMPANY.cnpj} · IE{" "}
+          {COMPANY.stateRegistration}
           <br />
           {COMPANY_ADDRESS_LINE}
           <br />
-          SAC: <a href={`mailto:${COMPANY.sacEmail}`}>{COMPANY.sacEmail}</a> · {COMPANY.phone} · {COMPANY.sacHours} ·
-          resposta em até {COMPANY.sacResponseBusinessDays} dias úteis
+          SAC: <a href={`mailto:${COMPANY.sacEmail}`}>
+            {COMPANY.sacEmail}
+          </a> · {COMPANY.phone} · {COMPANY.sacHours} · resposta em até{" "}
+          {COMPANY.sacResponseBusinessDays} dias úteis
         </Identification>
 
         <Bottom>
@@ -215,7 +215,9 @@ export function Footer() {
             © {new Date().getFullYear()} Roupa de Domingo. Nenhum domingo foi
             poupado.
           </span>
-          <span>Pagamento processado pelo Mercado Pago · produção sob demanda</span>
+          <span>
+            Pagamento processado pelo Mercado Pago · produção sob demanda
+          </span>
         </Bottom>
       </Container>
     </Wrapper>

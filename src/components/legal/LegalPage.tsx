@@ -5,8 +5,11 @@ import { Button, Container, Section } from "../ui";
 import { Seo } from "../seo/Seo";
 import { Breadcrumb } from "../seo/Breadcrumb";
 
-const Article = styled.article`
-  max-width: 78ch;
+const Article = styled.article<{ $wide?: boolean }>`
+  max-width: ${({ $wide }) => ($wide ? "none" : "78ch")};
+
+  /* Página larga (ex.: formulário): o texto corrido continua com largura de leitura */
+  ${({ $wide }) => ($wide ? "> p, > ul { max-width: 78ch; }" : "")}
 
   h1 {
     font-size: clamp(1.7rem, 3.5vw, 2.4rem);
@@ -150,18 +153,20 @@ export interface LegalPageProps {
   version?: string;
   /** Mostra o botão "Imprimir / salvar em PDF" (contrato que o consumidor pode arquivar) */
   printable?: boolean;
+  /** Usa a largura toda do container (formulários); o texto corrido segue limitado */
+  wide?: boolean;
   children: ReactNode;
 }
 
 /** Moldura comum das páginas institucionais e legais (título, vigência, SEO, breadcrumb). */
-export function LegalPage({ title, description, path, updatedAt, version, printable, children }: LegalPageProps) {
+export function LegalPage({ title, description, path, updatedAt, version, printable, wide, children }: LegalPageProps) {
   return (
     <Section $tight>
       <PrintOnlyDocument />
       <Seo title={title} description={description} path={path} type="article" />
       <Container>
         <Breadcrumb items={[{ label: "Início", to: "/" }, { label: title, to: path }]} />
-        <Article>
+        <Article $wide={wide}>
           <h1>{title}</h1>
           {(updatedAt || version) && (
             <p className="meta">
@@ -178,9 +183,11 @@ export function LegalPage({ title, description, path, updatedAt, version, printa
             </div>
           )}
           {children}
-          <p className="meta" style={{ marginTop: 48 }}>
-            Dúvidas? Fale com a gente pela página de <Link to="/contato">contato</Link>.
-          </p>
+          {path !== "/contato" && (
+            <p className="meta" style={{ marginTop: 48 }}>
+              Dúvidas? Fale com a gente pela página de <Link to="/contato">contato</Link>.
+            </p>
+          )}
         </Article>
       </Container>
     </Section>

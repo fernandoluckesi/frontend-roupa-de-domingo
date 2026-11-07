@@ -3,7 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
-import { extractError } from "../services/http";
+import { extractError, extractErrorCode } from "../services/http";
+import { setPendingSignupEmail } from "../utils/pendingSignup";
 import {
   Button,
   Card,
@@ -101,7 +102,7 @@ export default function Register() {
 
     setSubmitting(true);
     try {
-      await register({
+      const email = await register({
         name: form.name.trim(),
         email: form.email.trim().toLowerCase(),
         password: form.password,
@@ -112,13 +113,15 @@ export default function Register() {
         privacyVersion: LEGAL_VERSIONS.privacy,
         marketingOptIn,
       });
-      push({
-        variant: "success",
-        title: "Conta criada",
-        message: "Enviamos um link para confirmar o seu e-mail. Agora você é oficialmente responsável pelas próprias escolhas de estampa.",
-      });
-      navigate("/conta");
+      setPendingSignupEmail(email);
+      push({ variant: "info", title: "Falta pouco", message: "Enviamos um código de 6 dígitos para o seu e-mail." });
+      navigate("/confirmar-cadastro", { state: { email } });
     } catch (err) {
+      if (extractErrorCode(err) === "EMAIL_NOT_VERIFIED") {
+        // Cadastro antigo nao confirmado: o login com a senha reenvia o codigo
+        setError(extractError(err));
+        return;
+      }
       setError(extractError(err, "Não foi possível criar a conta."));
     } finally {
       setSubmitting(false);
@@ -238,7 +241,7 @@ export default function Register() {
             {error && <ErrorText role="alert">{error}</ErrorText>}
 
             <Button $full $size="lg" type="submit" disabled={submitting}>
-              {submitting ? "Criando..." : "Criar conta"}
+              {submitting ? "Enviando código..." : "Cadastrar"}
             </Button>
           </form>
 

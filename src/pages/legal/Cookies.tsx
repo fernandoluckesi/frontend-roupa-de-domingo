@@ -8,10 +8,12 @@ const STORAGE_ITEMS = [
   { key: "rd_session", type: "Cookie (httpOnly)", category: "Essencial", purpose: "Mantém você logado com segurança. Não pode ser lido por scripts da página.", duration: "7 dias, ou até sair da conta" },
   { key: "rd:sessionId", type: "localStorage", category: "Essencial", purpose: "Identifica o carrinho de quem ainda não tem conta.", duration: "Até você limpar os dados do navegador" },
   { key: "rd:zipCode", type: "localStorage", category: "Essencial", purpose: "Lembra o CEP para recalcular o frete.", duration: "Até você limpar os dados do navegador" },
+  { key: "rd:pendingSignupEmail", type: "sessionStorage", category: "Essencial", purpose: "Guarda o e-mail do cadastro enquanto você digita o código de confirmação.", duration: "Até confirmar o cadastro ou fechar a aba" },
   { key: "rd:lastOrder", type: "sessionStorage", category: "Essencial", purpose: "Mostra o pedido certo ao voltar do Mercado Pago.", duration: "Até fechar a aba" },
   { key: "rd:cookieConsent", type: "localStorage", category: "Essencial", purpose: "Guarda a sua escolha sobre cookies (e a versão desta política).", duration: "Até mudar a versão da política ou você limpar o navegador" },
   { key: "rd:themeMode", type: "localStorage", category: "Preferências", purpose: "Lembra o tema visual escolhido (incluindo o modo caos).", duration: "Até revogar ou limpar o navegador" },
   { key: "rd:emptyCartViews", type: "sessionStorage", category: "Preferências", purpose: "Conta visitas ao carrinho vazio (easter egg).", duration: "Até fechar a aba" },
+  { key: "rd:fakeDiscountShownAt", type: "localStorage", category: "Preferências", purpose: "Guarda quando a pegadinha do desconto apareceu, para não repetir antes de 5 dias (easter egg).", duration: "Até revogar ou limpar o navegador" },
 ];
 
 const CATEGORIES = [

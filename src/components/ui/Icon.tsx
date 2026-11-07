@@ -19,6 +19,8 @@ const PATHS = {
   search: "M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4",
   filter: "M4 5h16l-6 8v5l-4 2v-7z",
   shield: "M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z",
+  chat: "M4 12a8 8 0 1 1 3.4 6.5L4 20l1.3-3.7A7.9 7.9 0 0 1 4 12zM9 10.5h6M9 13.5h4",
+  mail: "M4 6h16v12H4zM4 7l8 6 8-6",
 } as const;
 
 export type IconName = keyof typeof PATHS;

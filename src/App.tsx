@@ -11,6 +11,7 @@ import { Loading, ToastViewport } from "./components/ui";
 import { useEasterEggs } from "./contexts/EasterEggContext";
 import { useKonamiCode, useTypedPhrase } from "./hooks/useEasterEggTriggers";
 import { CookieBanner } from "./components/legal/CookieBanner";
+import { FakeDiscountPrank } from "./components/easter-eggs/FakeDiscountPrank";
 import { RouteSeo } from "./components/seo/RouteSeo";
 
 const Home = lazyWithReload(() => import("./pages/Home"));
@@ -30,6 +31,7 @@ const NotFound = lazyWithReload(() => import("./pages/NotFound"));
 const ForgotPassword = lazyWithReload(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazyWithReload(() => import("./pages/auth/ResetPassword"));
 const VerifyEmail = lazyWithReload(() => import("./pages/auth/VerifyEmail"));
+const ConfirmRegistration = lazyWithReload(() => import("./pages/auth/ConfirmRegistration"));
 const Terms = lazyWithReload(() => import("./pages/legal/Terms"));
 const Privacy = lazyWithReload(() => import("./pages/legal/Privacy"));
 const Returns = lazyWithReload(() => import("./pages/legal/Returns"));
@@ -90,12 +92,14 @@ export default function App() {
             <Route path="/esqueci-a-senha" element={<ForgotPassword />} />
             <Route path="/redefinir-senha" element={<ResetPassword />} />
             <Route path="/verificar-email" element={<VerifyEmail />} />
+            <Route path="/confirmar-cadastro" element={<ConfirmRegistration />} />
             <Route path="/termos" element={<Terms />} />
             <Route path="/privacidade" element={<Privacy />} />
             <Route path="/trocas-e-devolucoes" element={<Returns />} />
             <Route path="/cookies" element={<Cookies />} />
             <Route path="/quem-somos" element={<About />} />
             <Route path="/contato" element={<Contact />} />
+            <Route path="/fale-conosco" element={<Navigate to="/contato" replace />} />
             <Route path="/entrega" element={<Shipping />} />
             <Route path="/guia-de-tamanhos" element={<SizeGuide />} />
             <Route path="/pagamentos" element={<Payments />} />
@@ -111,6 +115,7 @@ export default function App() {
       <Footer />
       <ToastViewport />
       <CookieBanner />
+      <FakeDiscountPrank />
     </ThemeProvider>
   );
 }

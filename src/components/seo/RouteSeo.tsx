@@ -12,6 +12,7 @@ const PRIVATE_PREFIXES = [
   "/esqueci-a-senha",
   "/redefinir-senha",
   "/verificar-email",
+  "/confirmar-cadastro",
   "/trofeus",
 ];
 

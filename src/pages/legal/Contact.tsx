@@ -3,7 +3,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import { LegalPage } from "../../components/legal/LegalPage";
 import { Button, ErrorText, Field, Input, Label, Select, Textarea } from "../../components/ui";
-import { COMPANY, COMPANY_ADDRESS_LINE } from "../../config/company";
+import { Icon } from "../../components/ui/Icon";
+import { COMPANY, COMPANY_ADDRESS_LINE, whatsappUrl } from "../../config/company";
 import { useToast } from "../../contexts/ToastContext";
 import {
   CONTACT_SUBJECTS,
@@ -20,9 +21,92 @@ const Channels = styled.ul`
   gap: ${({ theme }) => theme.spacing(2)};
 `;
 
+const QuickChannels = styled.div`
+  display: grid;
+  gap: ${({ theme }) => theme.spacing(3)};
+  margin: ${({ theme }) => theme.spacing(4)} 0 ${({ theme }) => theme.spacing(2)};
+`;
+
+const ChannelCard = styled.a<{ $whatsapp?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing(3)};
+  padding: ${({ theme }) => theme.spacing(4)} ${({ theme }) => theme.spacing(5)};
+  border-radius: ${({ theme }) => theme.radius.lg};
+  border: 1px solid ${({ theme, $whatsapp }) => ($whatsapp ? theme.colors.success : theme.colors.border)};
+  background: ${({ theme, $whatsapp }) => ($whatsapp ? `${theme.colors.success}1a` : theme.colors.surface)};
+  color: ${({ theme }) => theme.colors.text} !important;
+  text-decoration: none !important;
+  transition: ${({ theme }) => theme.transition};
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: ${({ theme, $whatsapp }) => ($whatsapp ? theme.colors.success : theme.colors.accent)};
+  }
+
+  svg {
+    flex-shrink: 0;
+    color: ${({ theme, $whatsapp }) => ($whatsapp ? theme.colors.success : theme.colors.accent)};
+  }
+
+  strong {
+    display: block;
+    font-size: 1rem;
+  }
+
+  small {
+    display: block;
+    color: ${({ theme }) => theme.colors.textSoft};
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+
+  .cta {
+    margin-left: auto;
+    flex-shrink: 0;
+    padding: ${({ theme }) => theme.spacing(2)} ${({ theme }) => theme.spacing(4)};
+    border-radius: ${({ theme }) => theme.radius.pill};
+    background: ${({ theme }) => theme.colors.success};
+    color: ${({ theme }) => theme.colors.bg};
+    font-size: 0.86rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-wrap: wrap;
+
+    .cta {
+      margin-left: 0;
+      width: 100%;
+      text-align: center;
+    }
+  }
+`;
+
+/** Duas colunas no desktop; a mensagem, o aviso e o botão ocupam a linha inteira. */
 const Form = styled.form`
-  max-width: 560px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: ${({ theme }) => theme.spacing(5)};
   margin-top: ${({ theme }) => theme.spacing(4)};
+
+  .full {
+    grid-column: 1 / -1;
+  }
+
+  .submit {
+    justify-self: start;
+    min-width: 220px;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: 1fr;
+
+    .submit {
+      justify-self: stretch;
+    }
+  }
 `;
 
 const Counter = styled.p`
@@ -115,46 +199,16 @@ export default function Contact() {
 
   return (
     <LegalPage
-      title="Contato e SAC"
-      description="Fale com a Roupa de Domingo: e-mail, telefone, WhatsApp e formulário de atendimento. Respondemos em até 5 dias úteis."
+      title="Fale conosco"
+      description="Fale com a Roupa de Domingo pelo WhatsApp, e-mail ou formulário de atendimento. Respondemos em até 5 dias úteis."
       path="/contato"
+      wide
     >
       <p>
-        Pode reclamar, elogiar ou só desabafar sobre a segunda-feira. Toda mensagem recebe um
-        número de protocolo e resposta em até <strong>{COMPANY.sacResponseBusinessDays} dias
-        úteis</strong>.
-      </p>
-
-      <h2 id="canais">Canais de atendimento</h2>
-      <Channels>
-        <li>
-          <strong>E-mail:</strong> <a href={`mailto:${COMPANY.sacEmail}`}>{COMPANY.sacEmail}</a>
-        </li>
-        <li>
-          <strong>Telefone:</strong> {COMPANY.phone}
-        </li>
-        <li>
-          <strong>WhatsApp:</strong> {COMPANY.whatsapp}
-        </li>
-        <li>
-          <strong>Horário:</strong> {COMPANY.sacHours}
-        </li>
-        <li>
-          <strong>Privacidade (encarregado):</strong>{" "}
-          <a href={`mailto:${COMPANY.dpo.email}`}>{COMPANY.dpo.email}</a>
-        </li>
-        <li>
-          <strong>Direito autoral e marcas:</strong>{" "}
-          <a href={`mailto:${COMPANY.copyrightEmail}`}>{COMPANY.copyrightEmail}</a>
-        </li>
-        <li>
-          <strong>Endereço:</strong> {COMPANY_ADDRESS_LINE} (não atendemos presencialmente)
-        </li>
-      </Channels>
-      <p>
-        Quer devolver um produto? É mais rápido pela página do pedido em{" "}
-        <Link to="/conta/pedidos">Meus pedidos</Link>. Regras em{" "}
-        <Link to="/trocas-e-devolucoes">Trocas e devoluções</Link>.
+        Pode reclamar, elogiar ou só desabafar sobre a segunda-feira. Pelo formulário, toda mensagem
+        recebe um número de protocolo e resposta em até{" "}
+        <strong>{COMPANY.sacResponseBusinessDays} dias úteis</strong>. Para dúvidas rápidas, chama no{" "}
+        <a href="#whatsapp">WhatsApp</a>.
       </p>
 
       <h2 id="formulario">Formulário</h2>
@@ -237,7 +291,7 @@ export default function Contact() {
             {errors.orderNumber && <ErrorText id="contact-orderNumber-error">{errors.orderNumber}</ErrorText>}
           </Field>
 
-          <Field>
+          <Field className="full">
             <Label htmlFor="contact-message">Mensagem</Label>
             <Textarea
               id="contact-message"
@@ -254,16 +308,73 @@ export default function Contact() {
             {errors.message && <ErrorText id="contact-message-error">{errors.message}</ErrorText>}
           </Field>
 
-          <p className="meta">
+          <p className="meta full">
             Usamos seus dados só para responder esta mensagem. Veja a{" "}
             <Link to="/privacidade">Política de Privacidade</Link>.
           </p>
 
-          <Button type="submit" disabled={sending}>
+          <Button className="submit" type="submit" disabled={sending}>
             {sending ? "Enviando…" : "Enviar mensagem"}
           </Button>
         </Form>
       )}
+
+      <h2 id="whatsapp">Prefere conversar agora?</h2>
+      <QuickChannels>
+        <ChannelCard
+          $whatsapp
+          href={whatsappUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Conversar no WhatsApp ${COMPANY.whatsapp} (abre em nova aba)`}
+        >
+          <Icon name="chat" size={28} />
+          <span>
+            <strong>Conversar no WhatsApp</strong>
+            <small>
+              Clique aqui para abrir uma conversa com a gente no WhatsApp. {COMPANY.whatsapp} · {COMPANY.sacHours}
+            </small>
+          </span>
+          <span className="cta" aria-hidden="true">
+            Abrir WhatsApp →
+          </span>
+        </ChannelCard>
+      </QuickChannels>
+
+      <h2 id="canais">Canais de atendimento</h2>
+      <Channels>
+        <li>
+          <strong>E-mail:</strong> <a href={`mailto:${COMPANY.sacEmail}`}>{COMPANY.sacEmail}</a>
+        </li>
+        <li>
+          <strong>Telefone:</strong> {COMPANY.phone}
+        </li>
+        <li>
+          <strong>WhatsApp:</strong>{" "}
+          <a href={whatsappUrl()} target="_blank" rel="noopener noreferrer">
+            {COMPANY.whatsapp}
+          </a>
+        </li>
+        <li>
+          <strong>Horário:</strong> {COMPANY.sacHours}
+        </li>
+        <li>
+          <strong>Privacidade (encarregado):</strong>{" "}
+          <a href={`mailto:${COMPANY.dpo.email}`}>{COMPANY.dpo.email}</a>
+        </li>
+        <li>
+          <strong>Direito autoral e marcas:</strong>{" "}
+          <a href={`mailto:${COMPANY.copyrightEmail}`}>{COMPANY.copyrightEmail}</a>
+        </li>
+        <li>
+          <strong>Endereço:</strong> {COMPANY_ADDRESS_LINE} (não atendemos presencialmente)
+        </li>
+      </Channels>
+      <p>
+        Quer devolver um produto? É mais rápido pela página do pedido em{" "}
+        <Link to="/conta/pedidos">Meus pedidos</Link>. Regras em{" "}
+        <Link to="/trocas-e-devolucoes">Trocas e devoluções</Link>.
+      </p>
     </LegalPage>
   );
 }

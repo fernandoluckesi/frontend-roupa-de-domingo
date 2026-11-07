@@ -282,8 +282,11 @@ export default function Account() {
                   value={user.email}
                   readOnly
                   disabled
-                  title="O e-mail é o login da conta e não pode ser alterado aqui"
+                  aria-describedby="acc-email-hint"
                 />
+                <p id="acc-email-hint" style={{ fontSize: "0.78rem", marginTop: 4 }}>
+                  Para trocar, use “Trocar e-mail” em Privacidade e segurança.
+                </p>
               </Field>
               <Field>
                 <Label htmlFor="acc-phone">Telefone</Label>

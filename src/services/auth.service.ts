@@ -28,12 +28,23 @@ export const authService = {
     return { user: data.user };
   },
 
-  async register(payload: RegisterInput): Promise<Session> {
-    const { data } = await api.post<Session>("/auth/register", {
-      ...payload,
+  /** Cria a conta e envia o código por e-mail. A sessão só abre na confirmação. */
+  async register(payload: RegisterInput): Promise<{ email: string }> {
+    const { data } = await api.post<{ email: string }>("/auth/register", payload);
+    return data;
+  },
+
+  async confirmRegistration(email: string, code: string): Promise<Session> {
+    const { data } = await api.post<Session>("/auth/register/confirm", {
+      email,
+      code,
       sessionId: getSessionId(),
     });
     return { user: data.user };
+  },
+
+  async resendRegistrationCode(email: string): Promise<void> {
+    await api.post("/auth/register/resend", { email });
   },
 
   async logout(): Promise<void> {
@@ -49,8 +60,25 @@ export const authService = {
     return data;
   },
 
-  async changePassword(currentPassword: string, newPassword: string): Promise<User> {
-    const { data } = await api.post<Session>("/auth/password", { currentPassword, newPassword });
+  /** Confere a senha atual e envia o código de troca para o e-mail. Devolve o e-mail mascarado. */
+  async requestPasswordChangeCode(currentPassword: string): Promise<string> {
+    const { data } = await api.post<{ email: string }>("/auth/password/code", { currentPassword });
+    return data.email;
+  },
+
+  async changePassword(currentPassword: string, newPassword: string, code: string): Promise<User> {
+    const { data } = await api.post<Session>("/auth/password", { currentPassword, newPassword, code });
+    return data.user;
+  },
+
+  /** Confere a senha atual e envia o código para o e-mail novo. Devolve o e-mail novo mascarado. */
+  async requestEmailChangeCode(newEmail: string, currentPassword: string): Promise<string> {
+    const { data } = await api.post<{ email: string }>("/auth/email/change/code", { newEmail, currentPassword });
+    return data.email;
+  },
+
+  async changeEmail(code: string): Promise<User> {
+    const { data } = await api.post<Session>("/auth/email/change", { code });
     return data.user;
   },
 
@@ -59,8 +87,13 @@ export const authService = {
     return data.message;
   },
 
+  /** Links antigos de redefinição (token na URL). */
   async resetPassword(token: string, password: string): Promise<void> {
     await api.post("/auth/password/reset", { token, password });
+  },
+
+  async resetPasswordWithCode(email: string, code: string, password: string): Promise<void> {
+    await api.post("/auth/password/reset", { email, code, password });
   },
 
   async verifyEmail(token: string): Promise<void> {

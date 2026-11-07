@@ -1,12 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { Button, Card, Checkbox, ErrorText, Field, Input, Label, Modal, Textarea } from "../ui";
+import { Button, Card, Checkbox, CodeInput, ErrorText, Field, Input, Label, Modal, Textarea } from "../ui";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { authService } from "../../services/auth.service";
 import { api, extractError } from "../../services/http";
 import { PASSWORD_HINT, passwordProblem } from "../../utils/password";
+import { setPendingSignupEmail } from "../../utils/pendingSignup";
 
 const Grid = styled.div`
   display: grid;
@@ -78,6 +79,15 @@ export function PrivacySecurityPanel() {
   const [passwords, setPasswords] = useState({ current: "", next: "" });
   const [passwordError, setPasswordError] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+  /** E-mail mascarado para onde foi o código; null = ainda no passo das senhas */
+  const [passwordCodeSentTo, setPasswordCodeSentTo] = useState<string | null>(null);
+  const [passwordCode, setPasswordCode] = useState("");
+  const [emailForm, setEmailForm] = useState({ newEmail: "", password: "" });
+  const [emailError, setEmailError] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+  /** E-mail novo (mascarado) que recebeu o código; null = ainda no passo do formulário */
+  const [emailCodeSentTo, setEmailCodeSentTo] = useState<string | null>(null);
+  const [emailCode, setEmailCode] = useState("");
   const [exporting, setExporting] = useState(false);
   const [marketing, setMarketing] = useState(Boolean(user?.marketingOptIn));
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -89,21 +99,90 @@ export function PrivacySecurityPanel() {
 
   if (!user) return null;
 
-  const changePassword = async (event: FormEvent) => {
-    event.preventDefault();
+  /** Passo 1: confere a senha atual e manda o código para o e-mail. */
+  const requestPasswordCode = async (event?: FormEvent) => {
+    event?.preventDefault();
     const problem = passwordProblem(passwords.next);
     if (problem) return setPasswordError(problem);
     setPasswordError("");
     setSavingPassword(true);
     try {
-      setUser(await authService.changePassword(passwords.current, passwords.next));
-      setPasswords({ current: "", next: "" });
-      push({ variant: "success", title: "Senha alterada", message: "As outras sessões foram encerradas." });
+      setPasswordCodeSentTo(await authService.requestPasswordChangeCode(passwords.current));
+      setPasswordCode("");
     } catch (err) {
-      setPasswordError(extractError(err, "Não foi possível trocar a senha."));
+      setPasswordError(extractError(err, "Não foi possível enviar o código."));
     } finally {
       setSavingPassword(false);
     }
+  };
+
+  /** Passo 2: troca a senha com o código recebido. */
+  const changePassword = async (code = passwordCode) => {
+    if (code.length !== 6) return setPasswordError("Digite os 6 dígitos do código.");
+    setPasswordError("");
+    setSavingPassword(true);
+    try {
+      setUser(await authService.changePassword(passwords.current, passwords.next, code));
+      setPasswords({ current: "", next: "" });
+      setPasswordCodeSentTo(null);
+      setPasswordCode("");
+      push({ variant: "success", title: "Senha alterada", message: "As outras sessões foram encerradas." });
+    } catch (err) {
+      setPasswordError(extractError(err, "Não foi possível trocar a senha."));
+      setPasswordCode("");
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
+  const cancelPasswordChange = () => {
+    setPasswordCodeSentTo(null);
+    setPasswordCode("");
+    setPasswordError("");
+  };
+
+  /** Troca de e-mail, passo 1: senha atual + e-mail novo; o código vai para o e-mail novo. */
+  const requestEmailCode = async (event?: FormEvent) => {
+    event?.preventDefault();
+    const newEmail = emailForm.newEmail.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(newEmail)) return setEmailError("Informe um e-mail válido.");
+    if (newEmail === user.email) return setEmailError("Esse já é o e-mail da sua conta.");
+    if (!emailForm.password) return setEmailError("Digite a sua senha atual.");
+    setEmailError("");
+    setSavingEmail(true);
+    try {
+      setEmailCodeSentTo(await authService.requestEmailChangeCode(newEmail, emailForm.password));
+      setEmailCode("");
+    } catch (err) {
+      setEmailError(extractError(err, "Não foi possível enviar o código."));
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  /** Passo 2: confirma com o código recebido no e-mail novo. */
+  const changeEmail = async (code = emailCode) => {
+    if (code.length !== 6) return setEmailError("Digite os 6 dígitos do código.");
+    setEmailError("");
+    setSavingEmail(true);
+    try {
+      setUser(await authService.changeEmail(code));
+      setEmailForm({ newEmail: "", password: "" });
+      setEmailCodeSentTo(null);
+      setEmailCode("");
+      push({ variant: "success", title: "E-mail alterado", message: "Use o e-mail novo no próximo login. As outras sessões foram encerradas." });
+    } catch (err) {
+      setEmailError(extractError(err, "Não foi possível trocar o e-mail."));
+      setEmailCode("");
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  const cancelEmailChange = () => {
+    setEmailCodeSentTo(null);
+    setEmailCode("");
+    setEmailError("");
   };
 
   const exportData = async () => {
@@ -141,7 +220,9 @@ export function PrivacySecurityPanel() {
   const resendVerification = async () => {
     try {
       await authService.resendVerification();
-      push({ variant: "success", title: "Link enviado", message: "Confira a sua caixa de entrada." });
+      setPendingSignupEmail(user.email);
+      push({ variant: "success", title: "Código enviado", message: "Confira a sua caixa de entrada." });
+      navigate("/confirmar-cadastro", { state: { email: user.email } });
     } catch (err) {
       push({ variant: "error", title: "Não foi possível enviar", message: extractError(err) });
     }
@@ -204,7 +285,7 @@ export function PrivacySecurityPanel() {
         <Banner role="status">
           <span>Confirme o seu e-mail para receber as atualizações dos pedidos.</span>
           <Button $size="sm" $variant="secondary" type="button" onClick={() => void resendVerification()}>
-            Reenviar link
+            Confirmar e-mail
           </Button>
         </Banner>
       )}
@@ -248,41 +329,161 @@ export function PrivacySecurityPanel() {
 
         <Card>
           <h2>Segurança</h2>
-          <form onSubmit={changePassword} noValidate>
-            <Field>
-              <Label htmlFor="acc-current-password">Senha atual</Label>
-              <Input
-                id="acc-current-password"
-                type="password"
-                autoComplete="current-password"
-                value={passwords.current}
-                onChange={(e) => setPasswords((p) => ({ ...p, current: e.target.value }))}
-              />
-            </Field>
-            <Field>
-              <Label htmlFor="acc-new-password">Senha nova</Label>
-              <Input
-                id="acc-new-password"
-                type="password"
-                autoComplete="new-password"
-                value={passwords.next}
-                aria-describedby={passwordError ? "acc-password-error acc-password-hint" : "acc-password-hint"}
-                aria-invalid={Boolean(passwordError) || undefined}
-                onChange={(e) => setPasswords((p) => ({ ...p, next: e.target.value }))}
-              />
-              <p id="acc-password-hint" style={{ fontSize: "0.78rem", marginTop: 4 }}>
-                {PASSWORD_HINT}
+
+          <h3>Trocar e-mail</h3>
+          {emailCodeSentTo ? (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void changeEmail();
+              }}
+              noValidate
+            >
+              <p>
+                Enviamos um código de 6 dígitos para <strong>{emailCodeSentTo}</strong>. Digite abaixo para confirmar o
+                e-mail novo.
               </p>
-            </Field>
-            {passwordError && (
-              <ErrorText id="acc-password-error" role="alert">
-                {passwordError}
-              </ErrorText>
-            )}
-            <Button $size="sm" type="submit" disabled={savingPassword || !passwords.current || !passwords.next}>
-              {savingPassword ? "Salvando..." : "Trocar senha"}
-            </Button>
-          </form>
+              <CodeInput
+                value={emailCode}
+                onChange={setEmailCode}
+                onComplete={(code) => void changeEmail(code)}
+                invalid={Boolean(emailError)}
+                disabled={savingEmail}
+                describedBy={emailError ? "acc-email-error" : undefined}
+                label="Código enviado para o e-mail novo"
+                autoFocus
+              />
+              {emailError && (
+                <ErrorText id="acc-email-error" role="alert">
+                  {emailError}
+                </ErrorText>
+              )}
+              <div className="actions">
+                <Button $size="sm" type="submit" disabled={savingEmail || emailCode.length !== 6}>
+                  {savingEmail ? "Salvando..." : "Confirmar e-mail novo"}
+                </Button>
+                <Button $variant="ghost" $size="sm" type="button" disabled={savingEmail} onClick={() => void requestEmailCode()}>
+                  Reenviar código
+                </Button>
+                <Button $variant="ghost" $size="sm" type="button" disabled={savingEmail} onClick={cancelEmailChange}>
+                  Cancelar
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={requestEmailCode} noValidate>
+              <p>
+                E-mail atual: <strong>{user.email}</strong>. O código de confirmação vai para o e-mail novo.
+              </p>
+              <Field>
+                <Label htmlFor="acc-new-email">E-mail novo</Label>
+                <Input
+                  id="acc-new-email"
+                  type="email"
+                  autoComplete="email"
+                  value={emailForm.newEmail}
+                  aria-invalid={Boolean(emailError) || undefined}
+                  aria-describedby={emailError ? "acc-email-error" : undefined}
+                  onChange={(e) => setEmailForm((f) => ({ ...f, newEmail: e.target.value }))}
+                />
+              </Field>
+              <Field>
+                <Label htmlFor="acc-email-password">Senha atual</Label>
+                <Input
+                  id="acc-email-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={emailForm.password}
+                  onChange={(e) => setEmailForm((f) => ({ ...f, password: e.target.value }))}
+                />
+              </Field>
+              {emailError && (
+                <ErrorText id="acc-email-error" role="alert">
+                  {emailError}
+                </ErrorText>
+              )}
+              <Button $size="sm" type="submit" disabled={savingEmail || !emailForm.newEmail || !emailForm.password}>
+                {savingEmail ? "Enviando código..." : "Trocar e-mail"}
+              </Button>
+            </form>
+          )}
+
+          <h3>Trocar senha</h3>
+          {passwordCodeSentTo ? (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void changePassword();
+              }}
+              noValidate
+            >
+              <p>
+                Enviamos um código de 6 dígitos para <strong>{passwordCodeSentTo}</strong>. Digite abaixo para confirmar a
+                troca da senha.
+              </p>
+              <CodeInput
+                value={passwordCode}
+                onChange={setPasswordCode}
+                onComplete={(code) => void changePassword(code)}
+                invalid={Boolean(passwordError)}
+                disabled={savingPassword}
+                describedBy={passwordError ? "acc-password-error" : undefined}
+                autoFocus
+              />
+              {passwordError && (
+                <ErrorText id="acc-password-error" role="alert">
+                  {passwordError}
+                </ErrorText>
+              )}
+              <div className="actions">
+                <Button $size="sm" type="submit" disabled={savingPassword || passwordCode.length !== 6}>
+                  {savingPassword ? "Salvando..." : "Confirmar troca"}
+                </Button>
+                <Button $variant="ghost" $size="sm" type="button" disabled={savingPassword} onClick={() => void requestPasswordCode()}>
+                  Reenviar código
+                </Button>
+                <Button $variant="ghost" $size="sm" type="button" disabled={savingPassword} onClick={cancelPasswordChange}>
+                  Cancelar
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={requestPasswordCode} noValidate>
+              <Field>
+                <Label htmlFor="acc-current-password">Senha atual</Label>
+                <Input
+                  id="acc-current-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={passwords.current}
+                  onChange={(e) => setPasswords((p) => ({ ...p, current: e.target.value }))}
+                />
+              </Field>
+              <Field>
+                <Label htmlFor="acc-new-password">Senha nova</Label>
+                <Input
+                  id="acc-new-password"
+                  type="password"
+                  autoComplete="new-password"
+                  value={passwords.next}
+                  aria-describedby={passwordError ? "acc-password-error acc-password-hint" : "acc-password-hint"}
+                  aria-invalid={Boolean(passwordError) || undefined}
+                  onChange={(e) => setPasswords((p) => ({ ...p, next: e.target.value }))}
+                />
+                <p id="acc-password-hint" style={{ fontSize: "0.78rem", marginTop: 4 }}>
+                  {PASSWORD_HINT}
+                </p>
+              </Field>
+              {passwordError && (
+                <ErrorText id="acc-password-error" role="alert">
+                  {passwordError}
+                </ErrorText>
+              )}
+              <Button $size="sm" type="submit" disabled={savingPassword || !passwords.current || !passwords.next}>
+                {savingPassword ? "Enviando código..." : "Trocar senha"}
+              </Button>
+            </form>
+          )}
 
           <h3>Sessões</h3>
           <p>Perdeu o celular ou entrou num computador emprestado? Encerre todas as sessões abertas.</p>

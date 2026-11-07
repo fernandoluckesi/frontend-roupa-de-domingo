@@ -164,6 +164,8 @@ const Logo = styled.button`
 const Nav = styled.nav`
   display: flex;
   gap: ${({ theme }) => theme.spacing(5)};
+  flex-shrink: 0;
+  white-space: nowrap;
   font-size: 0.9rem;
   color: ${({ theme }) => theme.colors.textSoft};
 
@@ -178,7 +180,7 @@ const Nav = styled.nav`
 
 const SearchForm = styled.form`
   flex: 1;
-  max-width: 320px;
+  max-width: 640px;
   margin-left: auto;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
@@ -279,18 +281,6 @@ export function Header() {
           </span>
         </Logo>
 
-        <Nav>
-          <Link to="/catalogo">Tudo</Link>
-          <Link to="/catalogo?category=camisetas">Camisetas</Link>
-          <Link to="/catalogo?category=canecas">Canecas</Link>
-          <Link to="/catalogo?category=moletons">Moletons</Link>
-          <Link to="/catalogo?category=capas-de-celular">Capas</Link>
-          <Link to="/catalogo?category=garrafas">Garrafas</Link>
-          <Link to="/trofeus">
-            Troféus{progress ? ` ${progress.found}/${progress.total}` : ""}
-          </Link>
-        </Nav>
-
         <SearchForm onSubmit={submitSearch} role="search">
           <SearchField>
             <Icon name="search" size={18} />
@@ -303,6 +293,12 @@ export function Header() {
             />
           </SearchField>
         </SearchForm>
+
+        <Nav>
+          <Link to="/trofeus">
+            Troféus{progress ? ` ${progress.found}/${progress.total}` : ""}
+          </Link>
+        </Nav>
 
         <Actions>
           {user ? (

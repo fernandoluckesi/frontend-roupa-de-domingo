@@ -37,6 +37,16 @@ export const COMPANY = {
   siteUrl: "https://frontend-roupa-de-domingo-production.up.railway.app",
 } as const;
 
+/**
+ * Link do WhatsApp de suporte (wa.me) com uma mensagem inicial. A mensagem
+ * não leva dado pessoal: o cliente conta o que precisa já na conversa.
+ */
+export function whatsappUrl(message = "Olá! Vim pelo site da Roupa de Domingo e preciso de ajuda."): string {
+  const digits = COMPANY.whatsapp.replace(/\D/g, "");
+  const number = digits.startsWith("55") ? digits : `55${digits}`;
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+}
+
 export const COMPANY_ADDRESS_LINE = (() => {
   const a = COMPANY.address;
   return `${a.street}, ${a.number}${a.complement ? ` – ${a.complement}` : ""}, ${a.district}, ${a.city}/${a.state}, CEP ${a.zipCode}`;

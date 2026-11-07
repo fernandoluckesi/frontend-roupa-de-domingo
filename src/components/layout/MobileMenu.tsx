@@ -370,7 +370,7 @@ export function MobileMenu({ open, onClose, focusSection }: MobileMenuProps) {
     { to: "/guia-de-tamanhos", label: "Guia de tamanhos", icon: "ruler" },
     { to: "/entrega", label: "Entrega e prazos", icon: "truck" },
     { to: "/trocas-e-devolucoes", label: "Trocas e devoluções", icon: "swap" },
-    { to: "/contato", label: "Ajuda e contato", icon: "help" },
+    { to: "/contato", label: "Fale conosco", icon: "help" },
     { to: "/privacidade", label: "Privacidade", icon: "shield" },
   ];
 
