@@ -17,10 +17,23 @@ import {
   Select,
 } from "../components/ui";
 import { useDebouncedValue } from "../hooks/useEasterEggTriggers";
+import { useAlert } from "../hooks/useAlert";
 import { useEasterEggs } from "../contexts/EasterEggContext";
 import { openMobileMenu } from "../components/layout/Header";
 import { Icon } from "../components/ui/Icon";
-import type { Category, HumorOption, Paginated, Product } from "../types";
+import type {
+  Category,
+  GenderOption,
+  HumorOption,
+  Paginated,
+  Product,
+} from "../types";
+
+/**
+ * Opção que não corresponde a nenhum valor do enum Gender do backend: existe
+ * só para abrir o aviso e devolver a seleção para "Qualquer".
+ */
+const TODES = "TODES";
 
 const Layout = styled.div`
   display: grid;
@@ -129,7 +142,8 @@ const Chip = styled.button<{ $active?: boolean }>`
 
 const ClearLink = styled.button`
   display: block;
-  margin: -${({ theme }) => theme.spacing(1)} 0 ${({ theme }) => theme.spacing(3)};
+  margin: -${({ theme }) => theme.spacing(1)} 0
+    ${({ theme }) => theme.spacing(3)};
   padding: 0;
   background: none;
   border: 0;
@@ -198,8 +212,10 @@ export default function Catalog() {
   const [data, setData] = useState<Paginated<Product> | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [humors, setHumors] = useState<HumorOption[]>([]);
+  const [genders, setGenders] = useState<GenderOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState(params.get("search") ?? "");
+  const { alert, alertElement } = useAlert();
 
   const debouncedSearch = useDebouncedValue(searchInput, 450);
 
@@ -207,6 +223,9 @@ export default function Catalog() {
     () => ({
       category: params.get("category") ?? undefined,
       humor: params.get("humor") ?? undefined, // listas separadas por vírgula
+      // UNISSEX é o "qualquer": não vai para a API, senão esconderia as peças
+      // com modelagem masculina e feminina.
+      gender: params.get("gender") ?? undefined,
       search: debouncedSearch || undefined,
       sort: params.get("sort") ?? "recentes",
       page: Number(params.get("page") ?? "1"),
@@ -221,9 +240,11 @@ export default function Catalog() {
     void Promise.all([
       catalogService.categories(),
       catalogService.humors(),
-    ]).then(([cats, hums]) => {
+      catalogService.genders(),
+    ]).then(([cats, hums, gens]) => {
       setCategories(cats);
       setHumors(hums);
+      setGenders(gens);
     });
   }, []);
 
@@ -251,7 +272,8 @@ export default function Catalog() {
   );
 
   const setParam = useCallback(
-    (key: string, value?: string) => updateParam(key, () => (value ? [value] : [])),
+    (key: string, value?: string) =>
+      updateParam(key, () => (value ? [value] : [])),
     [updateParam],
   );
 
@@ -265,13 +287,42 @@ export default function Catalog() {
 
   const activeCategories = readList(params, "category");
   const activeHumors = readList(params, "humor");
+  // Escolha única: sem parâmetro na URL significa "Qualquer".
+  const activeGender = params.get("gender") ?? "UNISSEX";
   const currentPage = Number(params.get("page") ?? "1");
   const hasFilters = Boolean(
-    activeCategories.length || activeHumors.length || searchInput,
+    activeCategories.length ||
+    activeHumors.length ||
+    params.get("gender") ||
+    searchInput,
+  );
+
+  // Gênero conta como 1 filtro quando não está em "Qualquer".
+  const mobileFilterCount =
+    activeCategories.length +
+    activeHumors.length +
+    (params.get("gender") ? 1 : 0);
+
+  const selectGender = useCallback(
+    (value: string) => {
+      if (value === TODES) {
+        alert({
+          title: "Calma lá",
+          message: "Desde quando Todes é um genêro? Eu hein...",
+          // Cai em "Qualquer", que mostra as peças de todos os públicos.
+          onClose: () => setParam("gender", undefined),
+        });
+        return;
+      }
+      // "Qualquer" sai da URL: filtro ausente já devolve o catálogo inteiro.
+      setParam("gender", value === "UNISSEX" ? undefined : value);
+    },
+    [alert, setParam],
   );
 
   return (
     <Section $tight>
+      {alertElement}
       <Container>
         <Layout>
           <Sidebar>
@@ -351,6 +402,33 @@ export default function Catalog() {
               </Chips>
             </FilterBlock>
 
+            <FilterBlock $desktopOnly>
+              <Label>Gênero</Label>
+              <Chips role="radiogroup" aria-label="Gênero">
+                {genders.map((gender) => (
+                  <Chip
+                    key={gender.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={activeGender === gender.value}
+                    $active={activeGender === gender.value}
+                    onClick={() => selectGender(gender.value)}
+                    title={gender.description}
+                  >
+                    {gender.label}
+                  </Chip>
+                ))}
+                <Chip
+                  type="button"
+                  role="radio"
+                  aria-checked={false}
+                  onClick={() => selectGender(TODES)}
+                >
+                  Todes
+                </Chip>
+              </Chips>
+            </FilterBlock>
+
             <FilterBlock>
               <Label htmlFor="catalog-sort">Ordenar por</Label>
               <Select
@@ -397,11 +475,14 @@ export default function Catalog() {
                 </span>
               )}
               <MobileTools>
-                <FilterButton type="button" onClick={() => openMobileMenu("filters")}>
+                <FilterButton
+                  type="button"
+                  onClick={() => openMobileMenu("filters")}
+                >
                   <Icon name="filter" size={18} />
                   Filtrar
-                  {activeCategories.length + activeHumors.length > 0 && (
-                    <span className="count">{activeCategories.length + activeHumors.length}</span>
+                  {mobileFilterCount > 0 && (
+                    <span className="count">{mobileFilterCount}</span>
                   )}
                 </FilterButton>
                 <Select

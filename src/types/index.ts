@@ -2,9 +2,16 @@ export type Humor =
   | "ACIDO"
   | "SARCASTICO"
   | "EXISTENCIAL"
-  | "ABSURDO"
-  | "PASSIVO_AGRESSIVO"
-  | "MEMES";
+  | "MEMES"
+  | "PARA_CASAIS"
+  | "POLITICO";
+
+/**
+ * Publico-alvo da peca. UNISSEX funciona como "qualquer" no filtro: escolher
+ * MASCULINO ou FEMININO tambem traz as pecas unissex (caneca, garrafa e
+ * modelagem sem corte especifico).
+ */
+export type Gender = "UNISSEX" | "MASCULINO" | "FEMININO";
 
 export type OrderStatus =
   | "PENDING"
@@ -49,6 +56,7 @@ export interface Product {
   shortDescription: string;
   description?: string;
   humor: Humor;
+  gender: Gender;
   basePriceCents: number;
   tags: string[];
   isFeatured: boolean;
@@ -69,6 +77,12 @@ export interface Category extends CategoryRef {
 
 export interface HumorOption {
   value: Humor;
+  label: string;
+  description: string;
+}
+
+export interface GenderOption {
+  value: Gender;
   label: string;
   description: string;
 }

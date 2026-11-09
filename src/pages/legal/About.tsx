@@ -6,7 +6,7 @@ export default function About() {
   return (
     <LegalPage
       title="Quem somos"
-      description="A Roupa de Domingo faz camisetas, moletons, canecas, capas e garrafas com estampas de humor ácido, produzidas sob demanda. Conheça a empresa e seus dados de identificação."
+      description="A Roupa de Domingo faz camisetas, moletons, canecas e garrafas com estampas de humor ácido, produzidas sob demanda. Conheça a empresa e seus dados de identificação."
       path="/quem-somos"
     >
       <p>
@@ -16,7 +16,7 @@ export default function About() {
       </p>
       <p>
         Criamos estampas próprias de humor ácido — sem palavrão, sem ofender ninguém além da
-        segunda-feira — e vendemos em camisetas, moletons, canecas, capas de celular e garrafas.
+        segunda-feira — e vendemos em camisetas, moletons, canecas e garrafas.
       </p>
 
       <h2 id="como-funciona">Como funciona</h2>

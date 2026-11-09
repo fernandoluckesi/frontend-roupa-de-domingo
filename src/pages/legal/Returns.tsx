@@ -46,7 +46,7 @@ export default function Returns() {
 
       <h2 id="defeito">2. Produto com defeito (garantia legal de 90 dias)</h2>
       <p>
-        Camisetas, moletons, canecas, capas e garrafas são produtos duráveis: você tem{" "}
+        Camisetas, moletons, canecas e garrafas são produtos duráveis: você tem{" "}
         <strong>90 dias a partir do recebimento</strong> para reclamar de defeito aparente (CDC,
         art. 26, II). Defeito que só aparece com o uso (vício oculto) tem o mesmo prazo, contado a
         partir de quando ele aparecer (art. 26, § 3º).

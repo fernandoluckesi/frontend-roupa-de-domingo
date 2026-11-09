@@ -109,7 +109,7 @@ export default function SizeGuide() {
   return (
     <LegalPage
       title="Guia de tamanhos e cuidados"
-      description="Tabela de medidas das camisetas e moletons, composição do tecido, instruções de lavagem e especificações de canecas, capas e garrafas da Roupa de Domingo."
+      description="Tabela de medidas das camisetas e moletons, composição do tecido, instruções de lavagem e especificações de canecas e garrafas da Roupa de Domingo."
       path="/guia-de-tamanhos"
     >
       <p>

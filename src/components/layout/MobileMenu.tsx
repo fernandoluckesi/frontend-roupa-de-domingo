@@ -7,7 +7,11 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../contexts/CartContext";
 import { useEasterEggs } from "../../contexts/EasterEggContext";
 import { catalogService } from "../../services/catalog.service";
-import type { Category, HumorOption } from "../../types";
+import type { Category, GenderOption, HumorOption } from "../../types";
+import { useAlert } from "../../hooks/useAlert";
+
+/** Opção fora do enum Gender: existe só para abrir o aviso. */
+const TODES = "TODES";
 import { RdMonogram } from "../brand/RdMonogram";
 
 const Overlay = styled.div<{ $open: boolean }>`
@@ -142,7 +146,8 @@ const Group = styled.nav`
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: ${({ theme }) => theme.colors.textFaint};
-    padding: ${({ theme }) => theme.spacing(3)} ${({ theme }) => theme.spacing(5)} ${({ theme }) => theme.spacing(1)};
+    padding: ${({ theme }) => theme.spacing(3)}
+      ${({ theme }) => theme.spacing(5)} ${({ theme }) => theme.spacing(1)};
   }
 `;
 
@@ -199,7 +204,8 @@ const Chips = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: ${({ theme }) => theme.spacing(2)};
-  padding: ${({ theme }) => theme.spacing(2)} ${({ theme }) => theme.spacing(5)} ${({ theme }) => theme.spacing(3)};
+  padding: ${({ theme }) => theme.spacing(2)} ${({ theme }) => theme.spacing(5)}
+    ${({ theme }) => theme.spacing(3)};
 `;
 
 const Chip = styled.button<{ $active: boolean }>`
@@ -207,16 +213,21 @@ const Chip = styled.button<{ $active: boolean }>`
   border-radius: ${({ theme }) => theme.radius.pill};
   font-size: 0.85rem;
   font-weight: 600;
-  border: 1px solid ${({ theme, $active }) => ($active ? theme.colors.accent : theme.colors.border)};
-  background: ${({ theme, $active }) => ($active ? theme.colors.accent : "transparent")};
-  color: ${({ theme, $active }) => ($active ? theme.colors.accentText : theme.colors.textSoft)};
+  border: 1px solid
+    ${({ theme, $active }) =>
+      $active ? theme.colors.accent : theme.colors.border};
+  background: ${({ theme, $active }) =>
+    $active ? theme.colors.accent : "transparent"};
+  color: ${({ theme, $active }) =>
+    $active ? theme.colors.accentText : theme.colors.textSoft};
 `;
 
 const FilterActions = styled.div`
   display: grid;
   grid-template-columns: auto 1fr;
   gap: ${({ theme }) => theme.spacing(2)};
-  padding: ${({ theme }) => theme.spacing(1)} ${({ theme }) => theme.spacing(5)} ${({ theme }) => theme.spacing(4)};
+  padding: ${({ theme }) => theme.spacing(1)} ${({ theme }) => theme.spacing(5)}
+    ${({ theme }) => theme.spacing(4)};
 
   button {
     min-height: 44px;
@@ -249,7 +260,8 @@ const initials = (name: string) =>
     .map((part) => part[0]?.toUpperCase())
     .join("");
 
-const readList = (value: string | null) => (value ?? "").split(",").filter(Boolean);
+const readList = (value: string | null) =>
+  (value ?? "").split(",").filter(Boolean);
 
 export interface MobileMenuProps {
   open: boolean;
@@ -275,16 +287,25 @@ export function MobileMenu({ open, onClose, focusSection }: MobileMenuProps) {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [humors, setHumors] = useState<HumorOption[]>([]);
+  const [genders, setGenders] = useState<GenderOption[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedHumors, setSelectedHumors] = useState<string[]>([]);
+  // Escolha única. "UNISSEX" é o "Qualquer": não vira parâmetro na URL.
+  const [selectedGender, setSelectedGender] = useState("UNISSEX");
   const [preview, setPreview] = useState<number | null>(null);
+  const { alert, alertElement } = useAlert();
 
-  // Carrega categorias e humores só na primeira abertura
+  // Carrega categorias, humores e gêneros só na primeira abertura
   useEffect(() => {
     if (!open || categories.length) return;
-    void Promise.all([catalogService.categories(), catalogService.humors()]).then(([cats, hums]) => {
+    void Promise.all([
+      catalogService.categories(),
+      catalogService.humors(),
+      catalogService.genders(),
+    ]).then(([cats, hums, gens]) => {
       setCategories(cats);
       setHumors(hums);
+      setGenders(gens);
     });
   }, [open, categories.length]);
 
@@ -295,12 +316,16 @@ export function MobileMenu({ open, onClose, focusSection }: MobileMenuProps) {
     const onCatalog = location.pathname === "/catalogo";
     setSelectedCategories(onCatalog ? readList(params.get("category")) : []);
     setSelectedHumors(onCatalog ? readList(params.get("humor")) : []);
+    setSelectedGender(
+      onCatalog ? (params.get("gender") ?? "UNISSEX") : "UNISSEX",
+    );
 
     lastFocus.current = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const raf = requestAnimationFrame(() => {
-      if (focusSection === "filters") filtersRef.current?.scrollIntoView({ block: "start" });
+      if (focusSection === "filters")
+        filtersRef.current?.scrollIntoView({ block: "start" });
       closeRef.current?.focus();
     });
     const onKey = (event: KeyboardEvent) => {
@@ -330,34 +355,74 @@ export function MobileMenu({ open, onClose, focusSection }: MobileMenuProps) {
         .list({
           category: selectedCategories.join(",") || undefined,
           humor: selectedHumors.join(",") || undefined,
+          gender: selectedGender === "UNISSEX" ? undefined : selectedGender,
           limit: 1,
         })
         .then((data) => setPreview(data.meta.total))
         .catch(() => setPreview(null));
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [open, selectedCategories, selectedHumors]);
+  }, [open, selectedCategories, selectedHumors, selectedGender]);
 
   const toggle = (list: string[], set: (v: string[]) => void, value: string) =>
-    set(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+    set(
+      list.includes(value) ? list.filter((v) => v !== value) : [...list, value],
+    );
+
+  // "Todes" não é valor do enum: avisa e volta para "Qualquer".
+  const selectGender = (value: string) => {
+    if (value === TODES) {
+      alert({
+        title: "Calma lá",
+        message: "Desde quando Todes é um genêro? Eu hein...",
+        onClose: () => setSelectedGender("UNISSEX"),
+      });
+      return;
+    }
+    setSelectedGender(value);
+  };
 
   const applyFilters = () => {
     const params = new URLSearchParams();
-    if (selectedCategories.length) params.set("category", selectedCategories.join(","));
+    if (selectedCategories.length)
+      params.set("category", selectedCategories.join(","));
     if (selectedHumors.length) params.set("humor", selectedHumors.join(","));
+    if (selectedGender !== "UNISSEX") params.set("gender", selectedGender);
     const query = params.toString();
     navigate(`/catalogo${query ? `?${query}` : ""}`);
     onClose();
   };
 
-  const current = (path: string) => (location.pathname === path ? "page" : undefined);
-  const hasFilters = selectedCategories.length > 0 || selectedHumors.length > 0;
+  const current = (path: string) =>
+    location.pathname === path ? "page" : undefined;
+  const hasFilters =
+    selectedCategories.length > 0 ||
+    selectedHumors.length > 0 ||
+    selectedGender !== "UNISSEX";
 
-  const links: { to: string; label: string; icon: IconName; badge?: string | number }[] = [
+  const links: {
+    to: string;
+    label: string;
+    icon: IconName;
+    badge?: string | number;
+  }[] = [
     { to: "/", label: "Início", icon: "home" },
     { to: "/catalogo", label: "Todos os produtos", icon: "grid" },
-    { to: "/carrinho", label: "Carrinho", icon: "cart", badge: itemCount || undefined },
-    ...(user ? [{ to: "/conta/pedidos", label: "Meus pedidos", icon: "bag" as IconName }] : []),
+    {
+      to: "/carrinho",
+      label: "Carrinho",
+      icon: "cart",
+      badge: itemCount || undefined,
+    },
+    ...(user
+      ? [
+          {
+            to: "/conta/pedidos",
+            label: "Meus pedidos",
+            icon: "bag" as IconName,
+          },
+        ]
+      : []),
     {
       to: "/trofeus",
       label: "Troféus",
@@ -377,6 +442,7 @@ export function MobileMenu({ open, onClose, focusSection }: MobileMenuProps) {
   // Portal no <body>: o header usa backdrop-filter, que prenderia o position: fixed dentro dele
   return createPortal(
     <>
+      {alertElement}
       <Overlay $open={open} onClick={onClose} aria-hidden="true" />
       <Drawer
         $open={open}
@@ -388,8 +454,18 @@ export function MobileMenu({ open, onClose, focusSection }: MobileMenuProps) {
       >
         <Profile>
           <div className="top">
-            <RdMonogram size={40} color={theme.colors.accentText} title="Roupa de Domingo" />
-            <button ref={closeRef} type="button" className="close" onClick={onClose} aria-label="Fechar menu">
+            <RdMonogram
+              size={40}
+              color={theme.colors.accentText}
+              title="Roupa de Domingo"
+            />
+            <button
+              ref={closeRef}
+              type="button"
+              className="close"
+              onClick={onClose}
+              aria-label="Fechar menu"
+            >
               <Icon name="close" size={24} />
             </button>
           </div>
@@ -413,7 +489,9 @@ export function MobileMenu({ open, onClose, focusSection }: MobileMenuProps) {
                 </span>
                 <div>
                   <strong>Olá!</strong>
-                  <span style={{ fontSize: "0.86rem" }}>Entre para ver pedidos e troféus.</span>
+                  <span style={{ fontSize: "0.86rem" }}>
+                    Entre para ver pedidos e troféus.
+                  </span>
                 </div>
               </div>
               <div className="auth">
@@ -430,7 +508,9 @@ export function MobileMenu({ open, onClose, focusSection }: MobileMenuProps) {
               <Item key={link.to} to={link.to} aria-current={current(link.to)}>
                 <Icon name={link.icon} />
                 {link.label}
-                {link.badge !== undefined && <span className="badge">{link.badge}</span>}
+                {link.badge !== undefined && (
+                  <span className="badge">{link.badge}</span>
+                )}
               </Item>
             ))}
           </Group>
@@ -444,7 +524,13 @@ export function MobileMenu({ open, onClose, focusSection }: MobileMenuProps) {
                   type="button"
                   $active={selectedCategories.includes(category.slug)}
                   aria-pressed={selectedCategories.includes(category.slug)}
-                  onClick={() => toggle(selectedCategories, setSelectedCategories, category.slug)}
+                  onClick={() =>
+                    toggle(
+                      selectedCategories,
+                      setSelectedCategories,
+                      category.slug,
+                    )
+                  }
                 >
                   {category.emoji ? `${category.emoji} ` : ""}
                   {category.name}
@@ -460,11 +546,38 @@ export function MobileMenu({ open, onClose, focusSection }: MobileMenuProps) {
                   title={humor.description}
                   $active={selectedHumors.includes(humor.value)}
                   aria-pressed={selectedHumors.includes(humor.value)}
-                  onClick={() => toggle(selectedHumors, setSelectedHumors, humor.value)}
+                  onClick={() =>
+                    toggle(selectedHumors, setSelectedHumors, humor.value)
+                  }
                 >
                   {humor.label}
                 </Chip>
               ))}
+            </Chips>
+            <h3>Gênero</h3>
+            <Chips role="radiogroup" aria-label="Gênero">
+              {genders.map((gender) => (
+                <Chip
+                  key={gender.value}
+                  type="button"
+                  role="radio"
+                  title={gender.description}
+                  $active={selectedGender === gender.value}
+                  aria-checked={selectedGender === gender.value}
+                  onClick={() => selectGender(gender.value)}
+                >
+                  {gender.label}
+                </Chip>
+              ))}
+              <Chip
+                type="button"
+                role="radio"
+                $active={false}
+                aria-checked={false}
+                onClick={() => selectGender(TODES)}
+              >
+                Todes
+              </Chip>
             </Chips>
             <FilterActions>
               <button
@@ -474,6 +587,7 @@ export function MobileMenu({ open, onClose, focusSection }: MobileMenuProps) {
                 onClick={() => {
                   setSelectedCategories([]);
                   setSelectedHumors([]);
+                  setSelectedGender("UNISSEX");
                 }}
               >
                 Limpar

@@ -11,6 +11,7 @@ export {
 } from "./Layout";
 export { Spinner, Loading } from "./Spinner";
 export { Modal } from "./Modal";
+export { AlertDialog } from "./AlertDialog";
 export { QuantityStepper } from "./QuantityStepper";
 export { ToastViewport } from "./ToastViewport";
 export { EmptyState } from "./EmptyState";

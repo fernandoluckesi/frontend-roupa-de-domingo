@@ -66,22 +66,44 @@ export const SIZE_GUIDES: SizeGuide[] = [
       {
         label: "Comprimento",
         hint: "Do ponto mais alto do ombro, junto à gola, até a barra.",
-        values: { P: [66, 69], M: [69, 72], G: [71, 74], GG: [73, 76], XGG: [74, 77] },
+        values: {
+          P: [66, 69],
+          M: [69, 72],
+          G: [71, 74],
+          GG: [73, 76],
+          XGG: [74, 77],
+        },
       },
       {
         label: "Largura",
         hint: "De um lado ao outro, 2 cm abaixo da cava, com a peça esticada.",
-        values: { P: [49, 52], M: [50, 53], G: [54, 57], GG: [57, 60], XGG: [59, 63] },
+        values: {
+          P: [49, 52],
+          M: [50, 53],
+          G: [54, 57],
+          GG: [57, 60],
+          XGG: [59, 63],
+        },
       },
     ],
     body: [
       {
         label: "Tórax",
         hint: "Contorno do peito na parte mais larga, com a fita na horizontal.",
-        values: { P: [78, 86], M: [87, 97], G: [98, 104], GG: [105, 113], XGG: [114, 122] },
+        values: {
+          P: [78, 86],
+          M: [87, 97],
+          G: [98, 104],
+          GG: [105, 113],
+          XGG: [114, 122],
+        },
       },
     ],
-    composition: ["100% algodão fio penteado (ring-spun)", "Gola canelada com elastano", "Reforço de ombro a ombro"],
+    composition: [
+      "100% algodão fio penteado (ring-spun)",
+      "Gola canelada com elastano",
+      "Reforço de ombro a ombro",
+    ],
     care: DTG_CARE,
     origin: "Peça básica fabricada e estampada no Brasil.",
     notes: [
@@ -116,7 +138,13 @@ export const SIZE_GUIDES: SizeGuide[] = [
       {
         label: "Tórax",
         hint: "Contorno do peito na parte mais larga.",
-        values: { P: [96.5, 104.1], M: [106.7, 114.3], G: [116.8, 124.5], GG: [127, 134.6], XGG: [137.2, 144.8] },
+        values: {
+          P: [96.5, 104.1],
+          M: [106.7, 114.3],
+          G: [116.8, 124.5],
+          GG: [127, 134.6],
+          XGG: [137.2, 144.8],
+        },
       },
     ],
     composition: [
@@ -126,7 +154,8 @@ export const SIZE_GUIDES: SizeGuide[] = [
       "Punhos e barra em ribana 1×1 com elastano",
     ],
     care: DTG_CARE,
-    origin: "Peça básica fabricada em Bangladesh, Nicarágua, Honduras ou El Salvador; estampada no Brasil quando há estoque local, senão no exterior.",
+    origin:
+      "Peça básica fabricada em Bangladesh, Nicarágua, Honduras ou El Salvador; estampada no Brasil quando há estoque local, senão no exterior.",
   },
   {
     kind: "object",
@@ -140,27 +169,11 @@ export const SIZE_GUIDES: SizeGuide[] = [
       { label: "Material", value: "Cerâmica branca com acabamento brilhante" },
       { label: "Estampa", value: "Sublimação em volta da caneca" },
     ],
-    care: ["Pode ir ao micro-ondas e à lava-louças.", "Evite choque térmico (água fervente em caneca gelada)."],
-    origin: "Peça fabricada na China; estampada no Brasil.",
-  },
-  {
-    kind: "object",
-    categorySlug: "capas-de-celular",
-    title: "Capas de celular",
-    base: "Clear Case para iPhone e Samsung Galaxy",
-    specs: [
-      { label: "Modelos", value: "iPhone 13 a 17 (incluindo Pro e Pro Max) e Galaxy S23 a S25 (incluindo Ultra)" },
-      { label: "Material", value: "Fundo rígido de policarbonato e laterais flexíveis transparentes" },
-      { label: "Borda", value: "0,5 mm elevada em volta da tela" },
-      { label: "Recortes", value: "Alinhados com botões, câmeras e conectores do modelo escolhido" },
-      { label: "Carregamento sem fio", value: "Compatível" },
-    ],
     care: [
-      "Remova a película protetora interna antes de usar, se houver.",
-      "Limpe com pano macio levemente úmido; não use solventes.",
+      "Pode ir ao micro-ondas e à lava-louças.",
+      "Evite choque térmico (água fervente em caneca gelada).",
     ],
-    origin: "Fabricada na China ou na Coreia do Sul e enviada do exterior.",
-    notes: ["Confira o modelo exato do seu aparelho antes de comprar: capa de iPhone 16 não serve no 16 Pro."],
+    origin: "Peça fabricada na China; estampada no Brasil.",
   },
   {
     kind: "object",
@@ -171,7 +184,10 @@ export const SIZE_GUIDES: SizeGuide[] = [
       { label: "Capacidade", value: "500 ml (17 oz)" },
       { label: "Dimensões", value: "27 cm de altura × 7 cm de diâmetro" },
       { label: "Material", value: "Aço inoxidável com parede dupla a vácuo" },
-      { label: "Térmica", value: "Mantém a bebida quente ou gelada por cerca de 6 horas" },
+      {
+        label: "Térmica",
+        value: "Mantém a bebida quente ou gelada por cerca de 6 horas",
+      },
       { label: "Tampa", value: "Rosqueável, sem odor e à prova de vazamento" },
     ],
     care: [
@@ -188,6 +204,9 @@ export function sizeGuideFor(categorySlug: string): SizeGuide | undefined {
 }
 
 export function formatMeasure(value: Measure): string {
-  const fmt = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
-  return Array.isArray(value) ? `${fmt(value[0])}–${fmt(value[1])}` : fmt(value);
+  const fmt = (n: number) =>
+    n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+  return Array.isArray(value)
+    ? `${fmt(value[0])}–${fmt(value[1])}`
+    : fmt(value);
 }

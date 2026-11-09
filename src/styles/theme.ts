@@ -105,9 +105,9 @@ export const theme: AppTheme = {
     ACIDO: palette.lime,
     SARCASTICO: palette.orange,
     EXISTENCIAL: palette.violet,
-    ABSURDO: palette.mint,
-    PASSIVO_AGRESSIVO: palette.pink,
     MEMES: palette.blue,
+    PARA_CASAIS: palette.pink,
+    POLITICO: palette.mint,
   },
   orderStatus: {
     PENDING: palette.amber,

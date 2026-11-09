@@ -1,9 +1,17 @@
 import { api } from "./http";
-import type { Category, HumorOption, Paginated, Product } from "../types";
+import type {
+  Category,
+  GenderOption,
+  HumorOption,
+  Paginated,
+  Product,
+} from "../types";
 
 export interface ProductFilters {
   category?: string;
   humor?: string;
+  /** Lista separada por vírgula. O backend soma as peças unissex. */
+  gender?: string;
   search?: string;
   tags?: string;
   minPrice?: number;
@@ -42,6 +50,11 @@ export const catalogService = {
 
   async humors(): Promise<HumorOption[]> {
     const { data } = await api.get<HumorOption[]>("/humors");
+    return data;
+  },
+
+  async genders(): Promise<GenderOption[]> {
+    const { data } = await api.get<GenderOption[]>("/genders");
     return data;
   },
 };

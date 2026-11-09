@@ -51,7 +51,13 @@ export const HUMOR_LABELS: Record<string, string> = {
   ACIDO: "Ácido",
   SARCASTICO: "Sarcástico",
   EXISTENCIAL: "Existencial",
-  ABSURDO: "Absurdo",
-  PASSIVO_AGRESSIVO: "Passivo-agressivo",
   MEMES: "Memes",
+  PARA_CASAIS: "Para casais",
+  POLITICO: "Político",
+};
+
+export const GENDER_LABELS: Record<string, string> = {
+  UNISSEX: "Qualquer",
+  MASCULINO: "Masculino",
+  FEMININO: "Feminino",
 };

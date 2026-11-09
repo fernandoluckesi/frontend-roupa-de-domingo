@@ -122,9 +122,9 @@ export function Footer() {
           <Column>
             <strong>Roupa de Domingo</strong>
             <p>
-              Estampas de humor ácido em camisetas, moletons, canecas, capas e
-              garrafas. Estampamos sob demanda, então
-              nada fica encalhado no estoque — só as nossas ideias.
+              Estampas de humor ácido em camisetas, moletons, canecas e
+              garrafas. Estampamos sob demanda, então nada fica encalhado no
+              estoque — só as nossas ideias.
             </p>
           </Column>
 
@@ -142,9 +142,6 @@ export function Footer() {
               </li>
               <li>
                 <Link to="/catalogo?category=moletons">Moletons</Link>
-              </li>
-              <li>
-                <Link to="/catalogo?category=capas-de-celular">Capas</Link>
               </li>
               <li>
                 <Link to="/catalogo?category=garrafas">Garrafas</Link>

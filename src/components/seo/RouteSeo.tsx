@@ -20,11 +20,11 @@ const TITLES: Record<string, { title: string; description: string }> = {
   "/": {
     title: "Roupa de Domingo — estampas com humor ácido",
     description:
-      "Camisetas, moletons, canecas, capas de celular e garrafas com estampas de humor ácido. Produção sob demanda e entrega para todo o Brasil.",
+      "Camisetas, moletons, canecas e garrafas com estampas de humor ácido. Produção sob demanda e entrega para todo o Brasil.",
   },
   "/catalogo": {
     title: "Catálogo completo",
-    description: "Todas as estampas de humor ácido em camisetas, moletons, canecas, capas e garrafas.",
+    description: "Todas as estampas de humor ácido em camisetas, moletons, canecas e garrafas.",
   },
   "/carrinho": { title: "Carrinho", description: "Seu carrinho na Roupa de Domingo." },
   "/checkout": { title: "Finalizar compra", description: "Checkout seguro pelo Mercado Pago." },
