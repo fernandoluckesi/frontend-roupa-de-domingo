@@ -17,7 +17,7 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string, code?: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   /** Cria a conta e envia o código; devolve o e-mail que precisa ser confirmado */
   register: (payload: RegisterPayload) => Promise<string>;
   /** Confirma o cadastro com o código do e-mail e abre a sessão */
@@ -79,8 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void refresh().finally(() => setLoading(false));
   }, [refresh]);
 
-  const login = useCallback(async (email: string, password: string, code?: string) => {
-    const session = await authService.login(email, password, code);
+  const login = useCallback(async (email: string, password: string) => {
+    const session = await authService.login(email, password);
     setSessionHint(true);
     setUser(session.user);
   }, []);

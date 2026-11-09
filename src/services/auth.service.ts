@@ -18,11 +18,10 @@ export interface RegisterInput {
 }
 
 export const authService = {
-  async login(email: string, password: string, code?: string): Promise<Session> {
+  async login(email: string, password: string): Promise<Session> {
     const { data } = await api.post<Session>("/auth/login", {
       email,
       password,
-      ...(code ? { code } : {}),
       sessionId: getSessionId(),
     });
     return { user: data.user };
