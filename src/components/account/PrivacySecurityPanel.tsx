@@ -5,7 +5,7 @@ import { Button, Card, Checkbox, CodeInput, ErrorText, Field, Input, Label, Moda
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { authService } from "../../services/auth.service";
-import { api, extractError } from "../../services/http";
+import { extractError } from "../../services/http";
 import { PASSWORD_HINT, passwordProblem } from "../../utils/password";
 import { setPendingSignupEmail } from "../../utils/pendingSignup";
 
@@ -69,10 +69,10 @@ const Banner = styled.div`
 /**
  * Direitos do titular (LGPD art. 18) e segurança da conta:
  * exportar dados, revogar marketing, excluir conta, trocar senha,
- * sair de todos os dispositivos e verificação em duas etapas.
+ * sair de todos os dispositivos.
  */
 export function PrivacySecurityPanel() {
-  const { user, setUser, logoutEverywhere, refresh } = useAuth();
+  const { user, setUser, logoutEverywhere } = useAuth();
   const { push } = useToast();
   const navigate = useNavigate();
 
@@ -94,8 +94,6 @@ export function PrivacySecurityPanel() {
   const [deleteForm, setDeleteForm] = useState({ password: "", reason: "", confirm: false });
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState(false);
-  const [twoFactor, setTwoFactor] = useState<{ secret: string; otpauthUrl: string } | null>(null);
-  const [otp, setOtp] = useState("");
 
   if (!user) return null;
 
@@ -232,32 +230,6 @@ export function PrivacySecurityPanel() {
     await logoutEverywhere();
     push({ variant: "success", title: "Sessões encerradas", message: "Você saiu de todos os dispositivos." });
     navigate("/entrar");
-  };
-
-  const startTwoFactor = async () => {
-    try {
-      const { data } = await api.post<{ secret: string; otpauthUrl: string }>("/auth/2fa/setup");
-      setTwoFactor(data);
-    } catch (err) {
-      push({ variant: "error", title: "2FA", message: extractError(err) });
-    }
-  };
-
-  const confirmTwoFactor = async (enable: boolean) => {
-    try {
-      await api.post(enable ? "/auth/2fa/enable" : "/auth/2fa/disable", { otp });
-      setTwoFactor(null);
-      setOtp("");
-      if (!enable) {
-        push({ variant: "success", title: "2FA desativado", message: "Entre de novo para continuar." });
-        navigate("/entrar");
-        return;
-      }
-      await refresh();
-      push({ variant: "success", title: "2FA ativo", message: "O próximo login vai pedir o código do aplicativo." });
-    } catch (err) {
-      push({ variant: "error", title: "Código inválido", message: extractError(err) });
-    }
   };
 
   const deleteAccount = async (event: FormEvent) => {
@@ -490,62 +462,6 @@ export function PrivacySecurityPanel() {
           <Button $variant="secondary" $size="sm" type="button" onClick={() => void signOutEverywhere()}>
             Sair de todos os dispositivos
           </Button>
-
-          <h3>Verificação em duas etapas</h3>
-          {user.twoFactorEnabled ? (
-            <>
-              <p>Ativa. Para desativar, digite um código do aplicativo.</p>
-              <div className="actions">
-                <Input
-                  aria-label="Código de 6 dígitos"
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                  style={{ maxWidth: 140 }}
-                />
-                <Button $variant="secondary" $size="sm" type="button" onClick={() => void confirmTwoFactor(false)}>
-                  Desativar
-                </Button>
-              </div>
-            </>
-          ) : twoFactor ? (
-            <>
-              <p>
-                No aplicativo autenticador (Google Authenticator, 1Password, Authy...), adicione uma conta com esta chave:
-              </p>
-              <p>
-                <code>{twoFactor.secret}</code>
-              </p>
-              <p>
-                Ou abra no celular: <a href={twoFactor.otpauthUrl}>adicionar ao autenticador</a>. Depois digite o código
-                gerado:
-              </p>
-              <div className="actions">
-                <Input
-                  aria-label="Código de 6 dígitos"
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                  style={{ maxWidth: 140 }}
-                />
-                <Button $size="sm" type="button" onClick={() => void confirmTwoFactor(true)}>
-                  Ativar
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <p>
-                Um código do celular, além da senha, a cada login.
-                {user.role === "ADMIN" && " Obrigatório para acessar a área administrativa."}
-              </p>
-              <Button $variant="secondary" $size="sm" type="button" onClick={() => void startTwoFactor()}>
-                Configurar 2FA
-              </Button>
-            </>
-          )}
         </Card>
       </Grid>
 

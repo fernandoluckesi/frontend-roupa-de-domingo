@@ -68,9 +68,4 @@ export const paymentsService = {
     const { data } = await api.post(`/payments/mock/${orderNumber}/${outcome}`);
     return data;
   },
-
-  async syncFulfillment(orderNumber: string) {
-    const { data } = await api.get(`/fulfillment/${orderNumber}/sync`);
-    return data;
-  },
 };

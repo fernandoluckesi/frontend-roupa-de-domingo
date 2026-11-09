@@ -62,8 +62,8 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [otp, setOtp] = useState("");
-  const [needsOtp, setNeedsOtp] = useState(false);
+  const [loginCode, setLoginCode] = useState("");
+  const [needsCode, setNeedsCode] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -73,7 +73,7 @@ export default function Login() {
     setError("");
 
     try {
-      await login(email.trim().toLowerCase(), password, needsOtp ? otp : undefined);
+      await login(email.trim().toLowerCase(), password, needsCode ? loginCode : undefined);
       push({ variant: "success", title: "Bem-vindo de volta" });
       navigate("/conta");
     } catch (err) {
@@ -85,8 +85,8 @@ export default function Login() {
         navigate("/confirmar-cadastro", { state: { email: pending } });
         return;
       }
-      if (code === "OTP_REQUIRED") {
-        setNeedsOtp(true);
+      if (code === "LOGIN_CODE_REQUIRED") {
+        setNeedsCode(true);
         setError("");
         return;
       }
@@ -132,17 +132,17 @@ export default function Login() {
               />
             </Field>
 
-            {needsOtp && (
+            {needsCode && (
               <Field>
-                <Label htmlFor="login-otp">Código do aplicativo autenticador</Label>
+                <Label htmlFor="login-code">Código enviado para o seu e-mail</Label>
                 <Input
-                  id="login-otp"
+                  id="login-code"
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   maxLength={6}
                   autoFocus
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                  value={loginCode}
+                  onChange={(e) => setLoginCode(e.target.value.replace(/\D/g, ""))}
                   required
                 />
               </Field>

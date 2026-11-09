@@ -123,7 +123,7 @@ export function Footer() {
             <strong>Roupa de Domingo</strong>
             <p>
               Estampas de humor ácido em camisetas, moletons, canecas, capas e
-              garrafas. Produzimos sob demanda com parceiro de estamparia, então
+              garrafas. Estampamos sob demanda, então
               nada fica encalhado no estoque — só as nossas ideias.
             </p>
           </Column>

@@ -114,22 +114,6 @@ const Info = styled.div`
   }
 `;
 
-const Notice = styled.p`
-  font-size: 0.84rem;
-  line-height: 1.55;
-  color: ${({ theme }) => theme.colors.textSoft};
-  border-left: 3px solid ${({ theme }) => theme.colors.accent};
-  padding: ${({ theme }) => theme.spacing(2)} ${({ theme }) => theme.spacing(3)};
-  background: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radius.sm ?? "6px"};
-  margin-bottom: ${({ theme }) => theme.spacing(5)};
-
-  a {
-    color: ${({ theme }) => theme.colors.accent};
-    text-decoration: underline;
-  }
-`;
-
 const Specs = styled.details`
   margin-top: ${({ theme }) => theme.spacing(6)};
   border-top: 1px solid ${({ theme }) => theme.colors.border};
@@ -162,13 +146,6 @@ const Specs = styled.details`
     text-decoration: underline;
   }
 `;
-
-/** Categorias produzidas fora do Brasil (ver docs/PRINTFUL-API.md, catálogo completo). */
-const SHIPS_FROM_ABROAD: Record<string, string> = {
-  "capas-de-celular": "Este produto é produzido e enviado do exterior (10 a 25 dias).",
-  garrafas: "Este produto é produzido e enviado do exterior (10 a 15 dias).",
-  moletons: "Alguns tamanhos e cores podem ser produzidos e enviados do exterior quando não há estoque no Brasil.",
-};
 
 const OptionRow = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing(5)};
@@ -423,7 +400,6 @@ export default function ProductDetail() {
   };
 
   const guide = sizeGuideFor(product.category.slug);
-  const abroad = SHIPS_FROM_ABROAD[product.category.slug];
   const availablePrices = product.variants.filter((v) => v.isAvailable !== false).map((v) => v.priceCents);
   const lowPrice = availablePrices.length ? Math.min(...availablePrices) : product.basePriceCents;
   const highPrice = availablePrices.length ? Math.max(...availablePrices) : product.basePriceCents;
@@ -634,13 +610,6 @@ export default function ProductDetail() {
               </p>
             </ShippingBox>
 
-            {abroad && (
-              <Notice role="note">
-                {abroad} Remessas internacionais podem ter tributos de importação cobrados pela Receita Federal na
-                entrega. <Link to="/entrega">Saiba como funciona</Link>.
-              </Notice>
-            )}
-
             <p className="description">{product.description}</p>
 
             {guide && (
@@ -690,7 +659,7 @@ export default function ProductDetail() {
             <Facts>
               <li>SKU {selectedVariant?.sku}</li>
               <li>Produção sob demanda em 2 a 4 dias úteis, mais o prazo de transporte</li>
-              <li>Enviado direto pela estamparia parceira</li>
+              <li>Estampado e embalado por nós, enviado pelos Correios</li>
               <li>Pagamento processado pelo Mercado Pago</li>
               <li>
                 ★ {product.rating.toFixed(1)} de {product.ratingCount}{" "}

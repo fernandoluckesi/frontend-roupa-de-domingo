@@ -2,7 +2,7 @@ import { OrderInvoice, OrderReturns } from "../components/account/OrderReturns";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
-import { ordersService, paymentsService } from "../services/orders.service";
+import { ordersService } from "../services/orders.service";
 import { useToast } from "../contexts/ToastContext";
 import { extractError } from "../services/http";
 import {
@@ -139,6 +139,14 @@ const AddressBlock = styled.p`
   line-height: 1.6;
 `;
 
+const FULFILLMENT_LABELS: Record<string, string> = {
+  QUEUED: "Na fila de produção",
+  IN_PRODUCTION: "Em produção",
+  PACKED: "Embalado, aguardando postagem",
+  SHIPPED: "Postado nos Correios",
+  DELIVERED: "Entregue",
+};
+
 export default function OrderDetail() {
   const theme = useTheme();
   const { number = "" } = useParams();
@@ -162,21 +170,10 @@ export default function OrderDetail() {
     void load();
   }, [load]);
 
-  const syncProduction = async () => {
+  const refresh = async () => {
     setWorking(true);
-    try {
-      await paymentsService.syncFulfillment(number);
-      await load();
-      push({ variant: "info", title: "Status sincronizado com a estamparia" });
-    } catch (error) {
-      push({
-        variant: "error",
-        title: "Sincronizar",
-        message: extractError(error),
-      });
-    } finally {
-      setWorking(false);
-    }
+    await load();
+    setWorking(false);
   };
 
   const cancel = async () => {
@@ -355,7 +352,7 @@ export default function OrderDetail() {
                   <Divider />
                   <Line>
                     <span>Produção</span>
-                    <span>{order.fulfillment.status}</span>
+                    <span>{FULFILLMENT_LABELS[order.fulfillment.status] ?? order.fulfillment.status}</span>
                   </Line>
                   {order.fulfillment.trackingCode && (
                     <Line>
@@ -388,9 +385,9 @@ export default function OrderDetail() {
                 <Button
                   $variant="secondary"
                   disabled={working}
-                  onClick={syncProduction}
+                  onClick={refresh}
                 >
-                  Atualizar status da produção
+                  Atualizar status do pedido
                 </Button>
               )}
               {order.status === "PENDING" && (

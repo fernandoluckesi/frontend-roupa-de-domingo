@@ -62,11 +62,10 @@ const RETENTION = [
 
 const PROCESSORS = [
   { name: "Mercado Pago (MercadoPago.com Representações Ltda.)", role: "Processamento do pagamento", data: "Nome, e-mail, CPF, telefone, endereço e valor do pedido", country: "Brasil" },
-  { name: "Printful Inc.", role: "Produção, estampa e envio dos produtos", data: "Nome de quem recebe, endereço, telefone e itens do pedido", country: "Estados Unidos (com unidades de produção em outros países, incluindo o Brasil)" },
   { name: "Railway Corporation", role: "Hospedagem do site, da API e do banco de dados", data: "Todos os dados armazenados pela loja (criptografados em trânsito; CPF criptografado também em repouso)", country: "Estados Unidos" },
   { name: "Provedor de e-mail transacional (SMTP)", role: "Envio de confirmação de pedido, redefinição de senha e respostas do SAC", data: "Nome, e-mail e conteúdo da mensagem", country: "A definir; esta política será atualizada ao contratar" },
   { name: "ViaCEP", role: "Preenchimento automático do endereço pelo CEP", data: "Apenas o CEP digitado, consultado diretamente pelo seu navegador", country: "Brasil" },
-  { name: "Correios ou transportadora", role: "Entrega e logística reversa de devoluções", data: "Nome, endereço e telefone de quem recebe", country: "Brasil" },
+  { name: "Empresa Brasileira de Correios e Telégrafos (Correios)", role: "Entrega e logística reversa de devoluções", data: "Nome e endereço de quem recebe, conteúdo e valor declarado do pacote", country: "Brasil" },
 ];
 
 export default function Privacy() {
@@ -180,12 +179,12 @@ export default function Privacy() {
 
       <h2 id="transferencia-internacional">5. Transferência internacional</h2>
       <p>
-        A Printful (produção e envio) e a Railway (hospedagem) ficam nos Estados Unidos, então
-        parte dos seus dados é transferida para fora do Brasil. Essas transferências se baseiam
-        no art. 33 da LGPD: são necessárias para executar o contrato de compra que você pediu
-        (inciso IX) e são feitas com operadores que se comprometem contratualmente com padrões de
-        proteção compatíveis com a LGPD (cláusulas contratuais, inciso II). Alguns produtos
-        (capas, garrafas e certos tamanhos de moletom) são fabricados e enviados do exterior.
+        A Railway (hospedagem) fica nos Estados Unidos, então os dados armazenados pela loja são
+        transferidos para fora do Brasil. Essa transferência se baseia no art. 33 da LGPD: é
+        necessária para executar o contrato de compra que você pediu (inciso IX) e é feita com um
+        operador que se compromete contratualmente com padrões de proteção compatíveis com a LGPD
+        (cláusulas contratuais, inciso II). A produção e o envio dos produtos são feitos por nós,
+        no Brasil.
       </p>
 
       <h2 id="seguranca">6. Como protegemos seus dados</h2>

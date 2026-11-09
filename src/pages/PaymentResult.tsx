@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
-import { ordersService, paymentsService } from "../services/orders.service";
+import { ordersService } from "../services/orders.service";
 import { useCart } from "../contexts/CartContext";
 import { useToast } from "../contexts/ToastContext";
 import {
@@ -66,7 +66,7 @@ const COPY = {
     tone: "success" as const,
     emoji: "✅",
     title: "Pagamento aprovado",
-    text: "Seu pedido foi enviado para a estamparia. Agora é com a máquina de impressão e com a sua paciência.",
+    text: "Seu pedido entrou na fila de produção. Agora é com a máquina de impressão e com a sua paciência.",
   },
   pendente: {
     tone: "warning" as const,
@@ -135,20 +135,6 @@ export default function PaymentResult() {
       cancelled = true;
     };
   }, [orderNumber, attempts, push]);
-
-  const syncProduction = async () => {
-    try {
-      await paymentsService.syncFulfillment(orderNumber);
-      setAttempts((n) => n + 1);
-      push({ variant: "info", title: "Status atualizado na estamparia" });
-    } catch (error) {
-      push({
-        variant: "error",
-        title: "Sincronizar",
-        message: extractError(error),
-      });
-    }
-  };
 
   return (
     <Section $tight>
@@ -232,11 +218,6 @@ export default function PaymentResult() {
               >
                 Continuar comprando
               </Button>
-              {order.status !== "PENDING" && (
-                <Button $variant="ghost" onClick={syncProduction}>
-                  Atualizar status da produção
-                </Button>
-              )}
             </Stack>
           </Card>
         ) : (

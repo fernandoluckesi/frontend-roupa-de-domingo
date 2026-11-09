@@ -109,11 +109,11 @@ export interface ShippingOption {
   estimatedDays: number;
   minDays?: number;
   maxDays?: number;
-  /** YYYY-MM-DD, quando a estamparia informa */
+  /** YYYY-MM-DD, quando a transportadora informa */
   estimatedDeliveryDate?: string | null;
   carrier: string;
-  /** "printful" = cotação real; "tabela" = estimativa local */
-  source?: "printful" | "tabela";
+  /** "tabela" = tabela própria por região (Correios) */
+  source?: "tabela";
 }
 
 export interface Cart {
@@ -172,7 +172,6 @@ export interface User {
   marketingOptIn?: boolean;
   termsVersion?: string | null;
   privacyVersion?: string | null;
-  twoFactorEnabled?: boolean;
 }
 
 export type ReturnType = "REGRET" | "DEFECT";
@@ -255,7 +254,9 @@ export interface Order {
     status: string;
     trackingCode?: string | null;
     trackingUrl?: string | null;
-    sentAt?: string | null;
+    serviceCode?: "PAC" | "SEDEX" | null;
+    shippedAt?: string | null;
+    deliveredAt?: string | null;
   } | null;
   coupon?: { code: string; description: string } | null;
   invoice?: {

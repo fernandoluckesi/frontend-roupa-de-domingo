@@ -1,7 +1,7 @@
 /**
- * Guia de tamanhos e especificações, com dados reais do catálogo da Printful
+ * Guia de tamanhos e especificações das peças base usadas na produção
  * (GET /products/{id} e /products/{id}/sizes?unit=cm, consultados em 04/11/2026).
- * Tamanhos da Printful convertidos para os nossos: S→P, M→M, L→G, XL→GG, 2XL→XGG.
+ * Tamanhos do fornecedor convertidos para os nossos: S→P, M→M, L→G, XL→GG, 2XL→XGG.
  */
 
 export type ClothingSize = "P" | "M" | "G" | "GG" | "XGG";
@@ -60,7 +60,7 @@ export const SIZE_GUIDES: SizeGuide[] = [
     kind: "apparel",
     categorySlug: "camisetas",
     title: "Camisetas",
-    base: "Dimona Quality T-Shirt (corte reto masculino) — Printful 509",
+    base: "Dimona Quality T-Shirt (corte reto masculino)",
     fit: "Modelagem regular (reta). Se estiver entre dois tamanhos e gostar de folga, escolha o maior.",
     product: [
       {
@@ -93,7 +93,7 @@ export const SIZE_GUIDES: SizeGuide[] = [
     kind: "apparel",
     categorySlug: "moletons",
     title: "Moletons",
-    base: "Gildan 18500 Heavy Blend (canguru com capuz) — Printful 146",
+    base: "Gildan 18500 Heavy Blend (canguru com capuz)",
     fit: "Modelagem unissex ampla. Para um caimento mais justo, escolha um tamanho abaixo do habitual.",
     product: [
       {
@@ -132,7 +132,7 @@ export const SIZE_GUIDES: SizeGuide[] = [
     kind: "object",
     categorySlug: "canecas",
     title: "Canecas",
-    base: "White Glossy Mug 11 oz — Printful 19",
+    base: "White Glossy Mug 11 oz",
     specs: [
       { label: "Capacidade", value: "325 ml (11 oz)" },
       { label: "Altura", value: "9,6 cm" },
@@ -147,7 +147,7 @@ export const SIZE_GUIDES: SizeGuide[] = [
     kind: "object",
     categorySlug: "capas-de-celular",
     title: "Capas de celular",
-    base: "Clear Case para iPhone (Printful 181) e Samsung Galaxy (Printful 267)",
+    base: "Clear Case para iPhone e Samsung Galaxy",
     specs: [
       { label: "Modelos", value: "iPhone 13 a 17 (incluindo Pro e Pro Max) e Galaxy S23 a S25 (incluindo Ultra)" },
       { label: "Material", value: "Fundo rígido de policarbonato e laterais flexíveis transparentes" },
@@ -166,7 +166,7 @@ export const SIZE_GUIDES: SizeGuide[] = [
     kind: "object",
     categorySlug: "garrafas",
     title: "Garrafas",
-    base: "Stainless Steel Water Bottle 17 oz — Printful 382",
+    base: "Stainless Steel Water Bottle 17 oz",
     specs: [
       { label: "Capacidade", value: "500 ml (17 oz)" },
       { label: "Dimensões", value: "27 cm de altura × 7 cm de diâmetro" },

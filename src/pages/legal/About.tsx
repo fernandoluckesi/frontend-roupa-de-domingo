@@ -22,9 +22,9 @@ export default function About() {
       <h2 id="como-funciona">Como funciona</h2>
       <ul>
         <li>
-          <strong>Produção sob demanda:</strong> cada peça é estampada depois que você compra,
-          pelo nosso parceiro de produção (Printful). Nada fica encalhado em estoque, e não
-          produzimos sobra que vira lixo.
+          <strong>Produção sob demanda:</strong> cada peça é estampada por nós depois que você
+          compra, e sai embalada pelos Correios. Nada fica encalhado em estoque, e não produzimos
+          sobra que vira lixo.
         </li>
         <li>
           <strong>Estampas fechadas:</strong> todas as artes são criadas por nós. Você escolhe o
