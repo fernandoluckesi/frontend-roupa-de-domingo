@@ -1,7 +1,5 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { useEasterEggs } from "../contexts/EasterEggContext";
 import { Button, Container, Section } from "../components/ui";
 
 /**
@@ -47,15 +45,8 @@ const Wrapper = styled.div`
 `;
 
 export default function SecretQr() {
-  const { discover } = useEasterEggs();
-
-  // Escanear o QR conta como descoberta. O codigo precisa existir e estar
-  // ativo na tabela de easter eggs; se nao existir, o backend ignora e a
-  // pagina continua funcionando.
-  useEffect(() => {
-    void discover("QR_CODE_SEGREDO");
-  }, [discover]);
-
+  // Sem discover() de easter egg aqui: a notificacao de troféu competia com a
+  // piada da tela e entregava que havia mesmo "um segredo".
   return (
     <Section>
       <Container>

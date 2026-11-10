@@ -13,7 +13,7 @@ e manda o visitante para o catálogo.
 URL codificada:
 
 ```
-https://frontend-roupa-de-domingo-production.up.railway.app/segredo
+https://roupadedomingo.com.br/segredo
 ```
 
 Gerado com correção de erro nível **H** (recupera ~30% do código), que tolera
@@ -40,4 +40,5 @@ tempo de execução, então não precisa dela no `package.json`.
 - Preserve a margem branca em volta (quiet zone). Sem ela, muitos leitores falham.
 - Não recorte, não aplique sobre foto e não inverta as cores.
 - A rota tem `noindex`: a piada só funciona se chegarem pelo QR, não pela busca.
+- A tela não dispara notificação de troféu: o aviso competia com a piada.
 - Teste com a câmera do celular depois de imprimir o primeiro lote.
