@@ -14,6 +14,8 @@ const PRIVATE_PREFIXES = [
   "/verificar-email",
   "/confirmar-cadastro",
   "/trofeus",
+  // Destino do QR impresso: indexar entregaria a piada antes do escaneamento
+  "/segredo",
 ];
 
 const TITLES: Record<string, { title: string; description: string }> = {
@@ -30,6 +32,7 @@ const TITLES: Record<string, { title: string; description: string }> = {
   "/checkout": { title: "Finalizar compra", description: "Checkout seguro pelo Mercado Pago." },
   "/conta": { title: "Minha conta", description: "Dados, endereços, pedidos e privacidade." },
   "/trofeus": { title: "Troféus", description: "Easter eggs encontrados." },
+  "/segredo": { title: "Você desbloqueou um segredo", description: "Spoiler: não é um segredo." },
 };
 
 /**
