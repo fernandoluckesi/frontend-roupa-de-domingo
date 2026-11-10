@@ -34,7 +34,7 @@ export const COMPANY = {
   },
   /** Foro do consumidor prevalece (CDC art. 101, I); este é o foro subsidiário */
   forumCity: "São Paulo/SP",
-  siteUrl: "https://frontend-roupa-de-domingo-production.up.railway.app",
+  siteUrl: "https://roupadedomingo.com.br",
 } as const;
 
 /**

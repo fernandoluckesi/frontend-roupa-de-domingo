@@ -13,4 +13,4 @@ Disallow: /redefinir-senha
 Disallow: /verificar-email
 Disallow: /api/
 
-Sitemap: https://frontend-roupa-de-domingo-production.up.railway.app/sitemap.xml
+Sitemap: https://roupadedomingo.com.br/sitemap.xml

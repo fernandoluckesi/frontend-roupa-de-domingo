@@ -12,7 +12,7 @@ const path = require("node:path");
 const QRCode = require("qrcode");
 
 const SITE =
-  process.argv[2] ?? "https://frontend-roupa-de-domingo-production.up.railway.app";
+  process.argv[2] ?? "https://roupadedomingo.com.br";
 const TARGET = `${SITE.replace(/\/$/, "")}/segredo`;
 
 const OUT_DIR = path.join(__dirname, "..", "src", "assets", "brand", "QRCodes");
