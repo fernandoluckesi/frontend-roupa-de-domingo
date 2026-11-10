@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { Button, Checkbox } from "../ui";
 import { useConsent } from "../../contexts/ConsentContext";
+import { isQuietRoute } from "../../config/quietRoutes";
 
 const Banner = styled.div`
   position: fixed;
@@ -75,6 +76,7 @@ export function CookieBanner() {
     useConsent();
   const [prefs, setPrefs] = useState({ preferences: false, statistics: false, marketing: false });
   const firstButton = useRef<HTMLButtonElement>(null);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     if (preferencesOpen) {
@@ -89,6 +91,11 @@ export function CookieBanner() {
   useEffect(() => {
     if (preferencesOpen) firstButton.current?.focus();
   }, [preferencesOpen]);
+
+  // Rota do QR Code: nenhuma camada por cima da mensagem. O consentimento
+  // e adiado, nao presumido - sem escolha gravada, nada opcional roda.
+  // Excecao: se a pessoa abriu as preferencias de proposito, respeita.
+  if (isQuietRoute(pathname) && !preferencesOpen) return null;
 
   if (!bannerOpen && !preferencesOpen) return null;
 

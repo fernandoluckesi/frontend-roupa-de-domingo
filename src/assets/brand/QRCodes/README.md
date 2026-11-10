@@ -41,4 +41,7 @@ tempo de execução, então não precisa dela no `package.json`.
 - Não recorte, não aplique sobre foto e não inverta as cores.
 - A rota tem `noindex`: a piada só funciona se chegarem pelo QR, não pela busca.
 - A tela não dispara notificação de troféu: o aviso competia com a piada.
+- Nenhum modal aparece em `/segredo` (banner de cookies e pegadinha do desconto
+  ficam suprimidos). A rota está em `src/config/quietRoutes.ts`; adicione novas
+  rotas lá se precisar do mesmo comportamento.
 - Teste com a câmera do celular depois de imprimir o primeiro lote.

@@ -10,6 +10,7 @@ import styled, { css } from "styled-components";
 import { Button } from "../ui";
 import { hasConsent, useConsent } from "../../contexts/ConsentContext";
 import { useToast } from "../../contexts/ToastContext";
+import { QUIET_ROUTES } from "../../config/quietRoutes";
 
 /**
  * Pegadinha do "desconto de 20%":
@@ -20,7 +21,8 @@ import { useToast } from "../../contexts/ToastContext";
  *    troca o texto após 3s e some aos poucos.
  *
  * Regras de bom gosto (docs/EASTER-EGGS.md): não aparece no carrinho, checkout,
- * pagamento nem na conta. Depois de mostrar, só volta a aparecer 5 dias depois
+ * pagamento, conta nem nas rotas silenciosas (ver config/quietRoutes.ts).
+ * Depois de mostrar, só volta a aparecer 5 dias depois
  * (data gravada no localStorage quando há consentimento de "preferências";
  * sem consentimento, vale só enquanto a aba estiver aberta).
  */
@@ -42,6 +44,8 @@ const BLOCKED_PATHS = [
   "/conta",
   "/login",
   "/cadastro",
+  // Destino do QR Code: a pegadinha roubaria o clique do unico CTA da tela
+  ...QUIET_ROUTES,
 ];
 
 let shownInMemory = false;
@@ -173,14 +177,29 @@ export function FakeDiscountPrank() {
     return () => window.clearTimeout(id);
   }, [stage, blockedRoute, cookieUiOpen]);
 
-  // Se a pessoa entrar no carrinho/checkout no meio da pegadinha, ela some
+  // Se a pessoa entrar no carrinho/checkout no meio da pegadinha, ela some.
+  // O timer do deboche precisa ser cancelado junto: pendente, ele dispararia o
+  // snackbar na tela nova, mesmo com a pegadinha ja encerrada.
   useEffect(() => {
-    if (blockedRoute && stage !== "waiting" && stage !== "done")
-      setStage("done");
+    if (!blockedRoute) return;
+    window.clearTimeout(mockTimer.current);
+    if (stage !== "waiting" && stage !== "done") setStage("done");
   }, [blockedRoute, stage]);
+
+  // blockedRoute em ref: o timer do deboche e agendado uma vez e precisa
+  // consultar a rota do momento em que dispara, nao a da criacao.
+  const blockedRouteRef = useRef(blockedRoute);
+  blockedRouteRef.current = blockedRoute;
 
   const mock = useCallback(() => {
     window.clearTimeout(mockTimer.current);
+
+    // Trocou para uma rota sem modal enquanto o timer corria: encerra calado.
+    if (blockedRouteRef.current) {
+      setStage("done");
+      return;
+    }
+
     setStage("mocked");
     push({ variant: "egg", title: "Como é engraçado te fazer de trouxa." });
   }, [push]);
