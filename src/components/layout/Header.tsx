@@ -3,13 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { Container } from "../ui/Layout";
 import { Input } from "../ui/Form";
-import { Button } from "../ui/Button";
 import { useCart } from "../../contexts/CartContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEasterEggs } from "../../contexts/EasterEggContext";
 import { useClickStreak } from "../../hooks/useEasterEggTriggers";
 import { Icon } from "../ui/Icon";
 import { MobileMenu } from "./MobileMenu";
+import { UserMenu } from "./UserMenu";
 
 /** Abre o menu lateral de qualquer lugar (ex.: botão "Filtrar" do catálogo no mobile). */
 export const openMobileMenu = (section?: "filters") =>
@@ -125,11 +125,11 @@ const IconLink = styled(Link)`
   }
 `;
 
-const DesktopOnly = styled.div`
-  display: contents;
+const MobileOnly = styled.div`
+  display: none;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
-    display: none;
+    display: contents;
   }
 `;
 
@@ -219,7 +219,7 @@ const Count = styled.em`
 export function Header() {
   const navigate = useNavigate();
   const { itemCount } = useCart();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { discover, themeMode, setThemeMode, progress } = useEasterEggs();
   const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -303,15 +303,15 @@ export function Header() {
         <Actions>
           {user ? (
             <>
-              <IconLink to="/conta" aria-label={`Minha conta (${user.name.split(" ")[0]})`}>
-                <Icon name="user" />
-                <span className="name">{user.name.split(" ")[0]}</span>
-              </IconLink>
-              <DesktopOnly>
-                <Button $variant="ghost" $size="sm" onClick={() => void logout()}>
-                  Sair
-                </Button>
-              </DesktopOnly>
+              {/* Desktop: dropdown com conta, pedidos e sair */}
+              <UserMenu />
+              {/* Mobile: o atalho leva direto à conta; o menu fica no drawer */}
+              <MobileOnly>
+                <IconLink to="/conta" aria-label={`Minha conta (${user.name.split(" ")[0]})`}>
+                  <Icon name="user" />
+                  <span className="name">{user.name.split(" ")[0]}</span>
+                </IconLink>
+              </MobileOnly>
             </>
           ) : (
             <IconLink to="/entrar" aria-label="Entrar">

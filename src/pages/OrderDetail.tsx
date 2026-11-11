@@ -147,6 +147,18 @@ const FULFILLMENT_LABELS: Record<string, string> = {
   DELIVERED: "Entregue",
 };
 
+/** A timeline guarda o status cru do banco; aqui ele vira texto legivel. */
+const ORDER_STATUS_LABELS: Record<string, string> = {
+  PENDING: "Aguardando pagamento",
+  PAID: "Pagamento aprovado",
+  IN_PRODUCTION: "Em produção",
+  SHIPPED: "Enviado",
+  DELIVERED: "Entregue",
+  CANCELLED: "Cancelado",
+  REFUNDED: "Estornado",
+  FAILED: "Pagamento recusado",
+};
+
 export default function OrderDetail() {
   const theme = useTheme();
   const { number = "" } = useParams();
@@ -254,7 +266,7 @@ export default function OrderDetail() {
               <Timeline>
                 {order.timeline.map((entry, index) => (
                   <li key={`${entry.status}-${index}`}>
-                    <strong>{entry.status}</strong>
+                    <strong>{ORDER_STATUS_LABELS[entry.status] ?? entry.status}</strong>
                     <small>{formatDateTime(entry.at)}</small>
                     {entry.note && <p>{entry.note}</p>}
                   </li>

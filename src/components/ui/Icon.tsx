@@ -16,6 +16,7 @@ const PATHS = {
   swap: "M7 7h12l-3-3M17 17H5l3 3",
   logout: "M15 4h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3M10 16l-4-4 4-4M6 12h10",
   chevronRight: "M9 6l6 6-6 6",
+  chevronDown: "M6 9l6 6 6-6",
   search: "M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4",
   filter: "M4 5h16l-6 8v5l-4 2v-7z",
   shield: "M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z",
