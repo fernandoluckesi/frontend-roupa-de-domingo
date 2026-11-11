@@ -333,7 +333,9 @@ export default function Checkout() {
 
     setErrors(next);
     const termsOk = acceptTerms;
-    setTermsError(termsOk ? "" : "Aceite os termos e a política de trocas para continuar.");
+    setTermsError(
+      termsOk ? "" : "Aceite os termos e a política de trocas para continuar.",
+    );
     return Object.keys(next).length === 0 && termsOk;
   };
 
@@ -691,7 +693,9 @@ export default function Checkout() {
                 <span>{formatBRL(totals.totalCents)}</span>
               </Line>
 
-              <MoneyJoke>O dinheiro não é seu. É só sua vez gastar</MoneyJoke>
+              <MoneyJoke>
+                O dinheiro não é seu. É só a sua vez de gastar
+              </MoneyJoke>
 
               <div style={{ margin: "12px 0" }}>
                 <Checkbox
@@ -710,7 +714,11 @@ export default function Checkout() {
                     termos de uso
                   </Link>{" "}
                   e a{" "}
-                  <Link to="/trocas-e-devolucoes" target="_blank" rel="noopener">
+                  <Link
+                    to="/trocas-e-devolucoes"
+                    target="_blank"
+                    rel="noopener"
+                  >
                     política de trocas e devoluções
                   </Link>
                   . Sei que posso desistir em até 7 dias do recebimento.
@@ -728,9 +736,10 @@ export default function Checkout() {
 
               <Notice>
                 Ao continuar você vai para o ambiente do Mercado Pago, onde
-                escolhe entre Pix, cartão (em até 12x; juros, se houver, aparecem
-                antes de confirmar) ou boleto. Nenhum dado de cartão passa pela
-                nossa loja. <Link to="/pagamentos">Condições de pagamento</Link> ·{" "}
+                escolhe entre Pix, cartão (em até 12x; juros, se houver,
+                aparecem antes de confirmar) ou boleto. Nenhum dado de cartão
+                passa pela nossa loja.{" "}
+                <Link to="/pagamentos">Condições de pagamento</Link> ·{" "}
                 <Link to="/termos#cupons">regras de cupons</Link>.
                 {paymentInfo?.simulated &&
                   " Ambiente local sem credenciais: será aberta a tela de pagamento simulada."}

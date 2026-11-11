@@ -1,6 +1,7 @@
 export { Button } from "./Button";
 export { Input, Label, Field, ErrorText, Textarea, Select } from "./Form";
 export { PasswordInput } from "./PasswordInput";
+export { PasswordChecklist } from "./PasswordChecklist";
 export { Badge, HumorBadge } from "./Badge";
 export {
   Card,

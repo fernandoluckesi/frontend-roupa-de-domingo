@@ -14,12 +14,13 @@ import {
   Field,
   Input,
   Label,
+  PasswordChecklist,
   PasswordInput,
   Section,
 } from "../components/ui";
 import { Seo } from "../components/seo/Seo";
 import { maskDocument, maskPhone } from "../utils/format";
-import { PASSWORD_HINT, passwordProblem } from "../utils/password";
+import { passwordProblem } from "../utils/password";
 import { LEGAL_VERSIONS } from "../config/company";
 
 const Panel = styled(Card)`
@@ -46,7 +47,8 @@ const Panel = styled(Card)`
   .consents {
     display: grid;
     gap: ${({ theme }) => theme.spacing(3)};
-    margin: ${({ theme }) => theme.spacing(2)} 0 ${({ theme }) => theme.spacing(5)};
+    margin: ${({ theme }) => theme.spacing(2)} 0
+      ${({ theme }) => theme.spacing(5)};
   }
 
   .alt {
@@ -85,14 +87,33 @@ export default function Register() {
   const update = (key: keyof typeof form, value: string) =>
     setForm((current) => ({ ...current, [key]: value }));
 
+  /** Leva o campo com erro para a tela e devolve o foco a ele. */
+  const focusField = (key: FieldKey) => {
+    const element = document.getElementById(`reg-${key}`);
+    if (!element) return;
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Sem preventScroll o browser daria um segundo salto, cancelando o smooth.
+    element.focus({ preventScroll: true });
+  };
+
   const validate = () => {
     const next: Partial<Record<FieldKey, string>> = {};
     if (form.name.trim().length < 2) next.name = "Informe o seu nome.";
-    if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) next.email = "Informe um e-mail válido.";
+    if (!/^\S+@\S+\.\S+$/.test(form.email.trim()))
+      next.email = "Informe um e-mail válido.";
     const problem = passwordProblem(form.password);
     if (problem) next.password = problem;
-    if (!acceptTerms) next.terms = "Para criar a conta, aceite os termos de uso e a política de privacidade.";
+    if (!acceptTerms)
+      next.terms =
+        "Para criar a conta, aceite os termos de uso e a política de privacidade.";
     setErrors(next);
+
+    // Vai para o primeiro erro na ordem do formulario, nao na ordem do objeto.
+    const firstError = (["name", "email", "password"] as const).find(
+      (key) => next[key],
+    );
+    if (firstError) focusField(firstError);
+
     return Object.keys(next).length === 0;
   };
 
@@ -115,15 +136,32 @@ export default function Register() {
         marketingOptIn,
       });
       setPendingSignupEmail(email);
-      push({ variant: "info", title: "Falta pouco", message: "Enviamos um código de 6 dígitos para o seu e-mail." });
+      push({
+        variant: "info",
+        title: "Falta pouco",
+        message: "Enviamos um código de 6 dígitos para o seu e-mail.",
+      });
       navigate("/confirmar-cadastro", { state: { email } });
     } catch (err) {
-      if (extractErrorCode(err) === "EMAIL_NOT_VERIFIED") {
+      const code = extractErrorCode(err);
+
+      if (code === "EMAIL_NOT_VERIFIED") {
         // Cadastro antigo nao confirmado: o login com a senha reenvia o codigo
         setError(extractError(err));
         return;
       }
-      setError(extractError(err, "Não foi possível criar a conta."));
+
+      const message = extractError(err, "Não foi possível criar a conta.");
+
+      // E-mail duplicado: o problema e de um campo especifico, entao a mensagem
+      // vai abaixo do input em vez do aviso geral no topo do formulario.
+      if (code === "EMAIL_TAKEN") {
+        setErrors((current) => ({ ...current, email: message }));
+        focusField("email");
+        return;
+      }
+
+      setError(message);
     } finally {
       setSubmitting(false);
     }
@@ -131,12 +169,18 @@ export default function Register() {
 
   return (
     <Section $tight>
-      <Seo title="Criar conta" description="Crie sua conta na Roupa de Domingo." path="/cadastro" noindex />
+      <Seo
+        title="Criar conta"
+        description="Crie sua conta na Roupa de Domingo."
+        path="/cadastro"
+        noindex
+      />
       <Container>
         <Panel>
           <h1>Criar conta</h1>
           <p className="sub">
-            Leva menos tempo do que escolher entre duas camisetas quase iguais.
+            Leva menos tempo do que as promessas de campanha de Lula virando
+            mentiras.
           </p>
 
           <form onSubmit={submit} noValidate>
@@ -152,7 +196,9 @@ export default function Register() {
                 onChange={(e) => update("name", e.target.value)}
                 required
               />
-              {errors.name && <ErrorText id="reg-name-error">{errors.name}</ErrorText>}
+              {errors.name && (
+                <ErrorText id="reg-name-error">{errors.name}</ErrorText>
+              )}
             </Field>
 
             <Field>
@@ -168,7 +214,9 @@ export default function Register() {
                 onChange={(e) => update("email", e.target.value)}
                 required
               />
-              {errors.email && <ErrorText id="reg-email-error">{errors.email}</ErrorText>}
+              {errors.email && (
+                <ErrorText id="reg-email-error">{errors.email}</ErrorText>
+              )}
             </Field>
 
             <Field>
@@ -179,12 +227,21 @@ export default function Register() {
                 value={form.password}
                 $invalid={Boolean(errors.password)}
                 aria-invalid={Boolean(errors.password) || undefined}
-                aria-describedby={errors.password ? "reg-password-error reg-password-hint" : "reg-password-hint"}
+                aria-describedby={
+                  errors.password
+                    ? "reg-password-error reg-password-rules"
+                    : "reg-password-rules"
+                }
                 onChange={(e) => update("password", e.target.value)}
                 required
               />
-              <p className="hint" id="reg-password-hint">{PASSWORD_HINT}</p>
-              {errors.password && <ErrorText id="reg-password-error">{errors.password}</ErrorText>}
+              <PasswordChecklist
+                id="reg-password-rules"
+                password={form.password}
+              />
+              {errors.password && (
+                <ErrorText id="reg-password-error">{errors.password}</ErrorText>
+              )}
             </Field>
 
             <Field>
@@ -209,7 +266,6 @@ export default function Register() {
                   update("document", maskDocument(e.target.value))
                 }
               />
-              <p className="hint">Guardado cifrado. Usado na nota fiscal e no envio. <Link to="/privacidade">Saiba mais</Link>.</p>
             </Field>
 
             <div className="consents">
@@ -231,10 +287,17 @@ export default function Register() {
                 </Link>
                 .
               </Checkbox>
-              {errors.terms && <ErrorText id="reg-terms-error">{errors.terms}</ErrorText>}
+              {errors.terms && (
+                <ErrorText id="reg-terms-error">{errors.terms}</ErrorText>
+              )}
 
-              <Checkbox id="reg-marketing" checked={marketingOptIn} onChange={setMarketingOptIn}>
-                Quero receber novidades e ofertas por e-mail (opcional; dá para cancelar quando quiser).
+              <Checkbox
+                id="reg-marketing"
+                checked={marketingOptIn}
+                onChange={setMarketingOptIn}
+              >
+                Quero receber novidades e ofertas por e-mail (opcional; dá para
+                cancelar quando quiser).
               </Checkbox>
             </div>
 

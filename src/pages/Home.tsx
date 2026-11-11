@@ -131,9 +131,9 @@ export default function Home() {
             Roupa que diz <mark>o que você não diz</mark> em voz alta.
           </h1>
           <p>
-            Camisetas, moletons, canecas e garrafas com estampas de humor ácido. Impressas
-            sob demanda por nós mesmos e enviadas pelos Correios.
-            Sem estoque encalhado, sem frase motivacional.
+            Camisetas, moletons, canecas e garrafas com estampas de humor de
+            péssima qualidade. Compre hoje e não se arrependa amanhã. Deixe para
+            se arrepender quando chegar na tua casa
           </p>
           <HeroActions>
             <Button

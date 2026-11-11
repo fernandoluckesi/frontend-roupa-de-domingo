@@ -36,9 +36,15 @@ export default function Goodbye() {
           <p className="emoji" aria-hidden="true">
             😭
           </p>
-          <h1>Tchau, pamonha.</h1>
-          <Button as={Link} to="/" $size="lg" style={{ textDecoration: "none" }}>
-            Me arrependi, quero voltar
+          <h1>Que tistreza</h1>
+          <Button
+            as={Link}
+            to="/"
+            $size="lg"
+            style={{ textDecoration: "none" }}
+          >
+            Me arrependi, quero voltar (Isso não é uma mensagem para teu ou tua
+            ex)
           </Button>
         </Wrapper>
       </Container>
