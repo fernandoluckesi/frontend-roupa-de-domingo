@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { Button, Checkbox } from "../ui";
 import { useConsent } from "../../contexts/ConsentContext";
 import { isQuietRoute } from "../../config/quietRoutes";
+import { useHumorWarningAccepted } from "../../hooks/useHumorWarning";
 
 const Banner = styled.div`
   position: fixed;
@@ -77,6 +78,7 @@ export function CookieBanner() {
   const [prefs, setPrefs] = useState({ preferences: false, statistics: false, marketing: false });
   const firstButton = useRef<HTMLButtonElement>(null);
   const { pathname } = useLocation();
+  const humorWarningAccepted = useHumorWarningAccepted();
 
   useEffect(() => {
     if (preferencesOpen) {
@@ -96,6 +98,9 @@ export function CookieBanner() {
   // e adiado, nao presumido - sem escolha gravada, nada opcional roda.
   // Excecao: se a pessoa abriu as preferencias de proposito, respeita.
   if (isQuietRoute(pathname) && !preferencesOpen) return null;
+
+  // O aviso de humor vem primeiro: o banner espera ele ser respondido
+  if (!humorWarningAccepted && !preferencesOpen) return null;
 
   if (!bannerOpen && !preferencesOpen) return null;
 

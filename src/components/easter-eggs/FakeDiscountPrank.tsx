@@ -8,7 +8,8 @@ import {
 import { useLocation } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { Button } from "../ui";
-import { hasConsent, useConsent } from "../../contexts/ConsentContext";
+import { useConsent } from "../../contexts/ConsentContext";
+import { useHumorWarningAccepted } from "../../hooks/useHumorWarning";
 import { useToast } from "../../contexts/ToastContext";
 import { QUIET_ROUTES } from "../../config/quietRoutes";
 
@@ -21,10 +22,12 @@ import { QUIET_ROUTES } from "../../config/quietRoutes";
  *    troca o texto após 3s e some aos poucos.
  *
  * Regras de bom gosto (docs/EASTER-EGGS.md): não aparece no carrinho, checkout,
- * pagamento, conta nem nas rotas silenciosas (ver config/quietRoutes.ts).
- * Depois de mostrar, só volta a aparecer 5 dias depois
- * (data gravada no localStorage quando há consentimento de "preferências";
- * sem consentimento, vale só enquanto a aba estiver aberta).
+ * pagamento, conta nem nas rotas silenciosas (ver config/quietRoutes.ts), e só
+ * começa a contar depois do aviso de humor respondido.
+ * Aparece UMA vez por navegador: a marca fica no localStorage sem depender do
+ * consentimento de cookies (categoria Essencial na Política de Cookies). Ela
+ * existe só para não repetir uma janela que a pessoa já viu e não identifica
+ * ninguém.
  */
 
 const START_DELAY_MS = 30_000;
@@ -35,8 +38,9 @@ const TEXT_SWAP_MS = 6_000;
 const FADE_START_AFTER_SWAP_MS = 1_600;
 const FADE_MS = 3_000;
 
-const SHOWN_KEY = "rd:fakeDiscountShownAt";
-const COOLDOWN_MS = 5 * 24 * 60 * 60 * 1000;
+const SHOWN_KEY = "rd:fakeDiscountShown";
+/** Chave antiga (repetia a cada 5 dias e dependia de consentimento): ainda conta como "já viu" */
+const LEGACY_SHOWN_KEY = "rd:fakeDiscountShownAt";
 const BLOCKED_PATHS = [
   "/carrinho",
   "/checkout",
@@ -50,16 +54,13 @@ const BLOCKED_PATHS = [
 
 let shownInMemory = false;
 
-/** Já mostrou nos últimos 5 dias? */
+/** Este navegador já viu a pegadinha alguma vez? */
 function alreadyShown(): boolean {
   if (shownInMemory) return true;
   try {
-    if (!hasConsent("preferences")) return false;
-    const shownAt = Number(localStorage.getItem(SHOWN_KEY));
     return (
-      Number.isFinite(shownAt) &&
-      shownAt > 0 &&
-      Date.now() - shownAt < COOLDOWN_MS
+      localStorage.getItem(SHOWN_KEY) === "1" ||
+      localStorage.getItem(LEGACY_SHOWN_KEY) !== null
     );
   } catch {
     return false;
@@ -69,8 +70,8 @@ function alreadyShown(): boolean {
 function markShown() {
   shownInMemory = true;
   try {
-    if (hasConsent("preferences"))
-      localStorage.setItem(SHOWN_KEY, String(Date.now()));
+    localStorage.setItem(SHOWN_KEY, "1");
+    localStorage.removeItem(LEGACY_SHOWN_KEY);
   } catch {
     // localStorage indisponível: fica só na memória da aba
   }
@@ -166,16 +167,17 @@ export function FakeDiscountPrank() {
 
   const blockedRoute = BLOCKED_PATHS.some((p) => pathname.startsWith(p));
   const cookieUiOpen = bannerOpen || preferencesOpen;
+  const humorWarningAccepted = useHumorWarningAccepted();
 
-  // 1. Espera 30s em página permitida, com o aviso de cookies já resolvido
+  // 1. Espera 30s em página permitida, com o aviso de humor e o de cookies já resolvidos
   useEffect(() => {
-    if (stage !== "waiting" || blockedRoute || cookieUiOpen) return;
+    if (stage !== "waiting" || blockedRoute || cookieUiOpen || !humorWarningAccepted) return;
     const id = window.setTimeout(() => {
       markShown();
       setStage("offer");
     }, START_DELAY_MS);
     return () => window.clearTimeout(id);
-  }, [stage, blockedRoute, cookieUiOpen]);
+  }, [stage, blockedRoute, cookieUiOpen, humorWarningAccepted]);
 
   // Se a pessoa entrar no carrinho/checkout no meio da pegadinha, ela some.
   // O timer do deboche precisa ser cancelado junto: pendente, ele dispararia o

@@ -12,6 +12,7 @@ import { useEasterEggs } from "./contexts/EasterEggContext";
 import { useKonamiCode, useTypedPhrase } from "./hooks/useEasterEggTriggers";
 import { CookieBanner } from "./components/legal/CookieBanner";
 import { FakeDiscountPrank } from "./components/easter-eggs/FakeDiscountPrank";
+import { HumorWarning } from "./components/easter-eggs/HumorWarning";
 import { RouteSeo } from "./components/seo/RouteSeo";
 
 const Home = lazyWithReload(() => import("./pages/Home"));
@@ -28,6 +29,7 @@ const Orders = lazyWithReload(() => import("./pages/Orders"));
 const OrderDetail = lazyWithReload(() => import("./pages/OrderDetail"));
 const Trophies = lazyWithReload(() => import("./pages/Trophies"));
 const SecretQr = lazyWithReload(() => import("./pages/SecretQr"));
+const Goodbye = lazyWithReload(() => import("./pages/Goodbye"));
 const NotFound = lazyWithReload(() => import("./pages/NotFound"));
 const ForgotPassword = lazyWithReload(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazyWithReload(() => import("./pages/auth/ResetPassword"));
@@ -92,6 +94,7 @@ export default function App() {
             <Route path="/trofeus" element={<Trophies />} />
             {/* Destino do QR Code impresso (src/assets/brand/QRCodes) */}
             <Route path="/segredo" element={<SecretQr />} />
+            <Route path="/tchau" element={<Goodbye />} />
             <Route path="/esqueci-a-senha" element={<ForgotPassword />} />
             <Route path="/redefinir-senha" element={<ResetPassword />} />
             <Route path="/verificar-email" element={<VerifyEmail />} />
@@ -119,6 +122,7 @@ export default function App() {
       <ToastViewport />
       <CookieBanner />
       <FakeDiscountPrank />
+      <HumorWarning />
     </ThemeProvider>
   );
 }

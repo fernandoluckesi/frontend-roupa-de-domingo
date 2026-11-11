@@ -32,7 +32,7 @@ export interface ConsentChoice {
 const STORAGE_KEY = "rd:cookieConsent";
 
 /** Chaves de armazenamento que dependem da categoria "preferências". */
-export const PREFERENCE_KEYS = ["rd:themeMode", "rd:consoleGreeted", "rd:emptyCartViews", "rd:fakeDiscountShownAt"];
+export const PREFERENCE_KEYS = ["rd:themeMode", "rd:consoleGreeted", "rd:emptyCartViews"];
 
 function readChoice(): ConsentChoice | null {
   try {

@@ -10,7 +10,8 @@
  * escolha registrada, `hasConsent()` devolve false e nada opcional roda. O
  * consentimento e apenas adiado para a proxima tela, nunca presumido.
  */
-export const QUIET_ROUTES = ["/segredo"];
+// `/tchau` e o destino de quem recusa o aviso de humor: modal ali so o traria de volta.
+export const QUIET_ROUTES = ["/segredo", "/tchau"];
 
 /** A rota atual deve ficar livre de modais? */
 export function isQuietRoute(pathname: string): boolean {

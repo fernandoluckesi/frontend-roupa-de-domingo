@@ -11,10 +11,10 @@ const STORAGE_ITEMS = [
   { key: "rd:pendingSignupEmail", type: "sessionStorage", category: "Essencial", purpose: "Guarda o e-mail do cadastro enquanto você digita o código de confirmação.", duration: "Até confirmar o cadastro ou fechar a aba" },
   { key: "rd:lastOrder", type: "sessionStorage", category: "Essencial", purpose: "Mostra o pedido certo ao voltar do Mercado Pago.", duration: "Até fechar a aba" },
   { key: "rd:cookieConsent", type: "localStorage", category: "Essencial", purpose: "Guarda a sua escolha sobre cookies (e a versão desta política).", duration: "Até mudar a versão da política ou você limpar o navegador" },
+  { key: "rd:humorWarningAccepted", type: "localStorage", category: "Essencial", purpose: "Lembra que você já leu o aviso de que o site é de humor, para não mostrá-lo a cada visita.", duration: "Até você limpar os dados do navegador" },
+  { key: "rd:fakeDiscountShown", type: "localStorage", category: "Essencial", purpose: "Lembra que a pegadinha do desconto já apareceu, para ela nunca mais se repetir neste navegador.", duration: "Até você limpar os dados do navegador" },
   { key: "rd:themeMode", type: "localStorage", category: "Preferências", purpose: "Lembra o tema visual escolhido (incluindo o modo caos).", duration: "Até revogar ou limpar o navegador" },
-  { key: "rd:emptyCartViews", type: "sessionStorage", category: "Preferências", purpose: "Conta visitas ao carrinho vazio (easter egg).", duration: "Até fechar a aba" },
-  { key: "rd:fakeDiscountShownAt", type: "localStorage", category: "Preferências", purpose: "Guarda quando a pegadinha do desconto apareceu, para não repetir antes de 5 dias (easter egg).", duration: "Até revogar ou limpar o navegador" },
-];
+  { key: "rd:emptyCartViews", type: "sessionStorage", category: "Preferências", purpose: "Conta visitas ao carrinho vazio (easter egg).", duration: "Até fechar a aba" },];
 
 const CATEGORIES = [
   { name: "Essenciais", status: "Sempre ativos", text: "Necessários para o login, o carrinho, o frete e o pagamento funcionarem. Não dependem de consentimento (LGPD, art. 7º, V)." },
