@@ -99,6 +99,28 @@ const Hint = styled.p`
   margin-top: ${({ theme }) => theme.spacing(1)};
 `;
 
+/**
+ * Recado antes do pagamento. Tem a forma de um botao (mesma altura, raio e
+ * tipografia), mas e so texto: sem background e sem acao, para ninguem tentar
+ * clicar e confundir com o botao de pagar que fica logo abaixo.
+ */
+const MoneyJoke = styled.p`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-top: ${({ theme }) => theme.spacing(4)};
+  padding: 11px 20px;
+  border: 1px solid ${({ theme }) => theme.colors.accent};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: transparent;
+  font-family: ${({ theme }) => theme.fonts.heading};
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
 const CheckRow = styled.label`
   /* inline-flex: a área clicável é só o checkbox + texto, não a linha inteira */
   display: inline-flex;
@@ -668,6 +690,8 @@ export default function Checkout() {
                 <span>Total</span>
                 <span>{formatBRL(totals.totalCents)}</span>
               </Line>
+
+              <MoneyJoke>O dinheiro não é seu. É só sua vez gastar</MoneyJoke>
 
               <div style={{ margin: "12px 0" }}>
                 <Checkbox
