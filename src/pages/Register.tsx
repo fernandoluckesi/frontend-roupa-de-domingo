@@ -14,6 +14,7 @@ import {
   Field,
   Input,
   Label,
+  PasswordInput,
   Section,
 } from "../components/ui";
 import { Seo } from "../components/seo/Seo";
@@ -172,9 +173,8 @@ export default function Register() {
 
             <Field>
               <Label htmlFor="reg-password">Senha</Label>
-              <Input
+              <PasswordInput
                 id="reg-password"
-                type="password"
                 autoComplete="new-password"
                 value={form.password}
                 $invalid={Boolean(errors.password)}
