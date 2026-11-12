@@ -26,6 +26,7 @@ import { sortVariants, sortedOptionValues } from "../utils/variantOrder";
 import { Seo, absoluteUrl } from "../components/seo/Seo";
 import { Breadcrumb } from "../components/seo/Breadcrumb";
 import { sizeGuideFor } from "../content/sizeGuide";
+import { trackAddToCart, trackViewItem } from "../lib/analytics";
 
 const Layout = styled.div`
   display: grid;
@@ -290,6 +291,12 @@ export default function ProductDetail() {
       .bySlug(slug)
       .then((data) => {
         const variants = sortVariants(data.variants);
+        trackViewItem({
+          id: data.slug,
+          name: data.name,
+          category: data.category?.name,
+          priceCents: variants[0]?.priceCents ?? data.basePriceCents,
+        });
         setProduct({ ...data, variants });
         const first = variants[0];
         setSize(first?.size ?? null);
@@ -367,6 +374,15 @@ export default function ProductDetail() {
       silent: mode === "buy",
     });
     setAdding(null);
+    if (added) {
+      trackAddToCart({
+        id: selectedVariant.sku,
+        name: product.name,
+        category: product.category?.name,
+        priceCents: selectedVariant.priceCents,
+        quantity,
+      });
+    }
     // Comprar agora: o item já está no carrinho, segue direto para o checkout
     if (added && mode === "buy") navigate("/checkout");
   };

@@ -1,3 +1,5 @@
+import { hasAnyTracker } from "./analytics";
+
 /**
  * Identificação do fornecedor (Decreto 7.962/2013, art. 2º) e dados de contato.
  *
@@ -52,10 +54,17 @@ export const COMPANY_ADDRESS_LINE = (() => {
   return `${a.street}, ${a.number}${a.complement ? ` – ${a.complement}` : ""}, ${a.district}, ${a.city}/${a.state}, CEP ${a.zipCode}`;
 })();
 
+/**
+ * Versão das políticas de cookies e privacidade com ferramentas de medição.
+ * Ligar o GA4 ou o Pixel (variáveis VITE_*) muda o texto das políticas, e a nova
+ * versão faz o aviso de cookies reaparecer para todos decidirem de novo.
+ */
+const TRACKING_POLICY_VERSION = "2026-11-12";
+
 /** Versões vigentes dos documentos legais: mudar a versão exige novo aceite. */
 export const LEGAL_VERSIONS = {
   terms: "2026-11-04",
-  privacy: "2026-11-04",
-  cookies: "2026-11-04",
+  privacy: hasAnyTracker ? TRACKING_POLICY_VERSION : "2026-11-04",
+  cookies: hasAnyTracker ? TRACKING_POLICY_VERSION : "2026-11-04",
   returns: "2026-11-04",
 } as const;

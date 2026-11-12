@@ -16,6 +16,10 @@ import {
 import { formatBRL } from "../utils/format";
 import { extractError } from "../services/http";
 import type { Order } from "../types";
+import { trackPurchase } from "../lib/analytics";
+
+/** Pedido com pagamento confirmado (conta como compra no GA4/Pixel). */
+const PAID_STATUSES: Order["status"][] = ["PAID", "IN_PRODUCTION", "SHIPPED", "DELIVERED"];
 
 const Hero = styled.div<{ $tone: "success" | "warning" | "danger" }>`
   text-align: center;
@@ -114,6 +118,19 @@ export default function PaymentResult() {
         const data = await ordersService.byNumber(orderNumber);
         if (cancelled) return;
         setOrder(data);
+        if (PAID_STATUSES.includes(data.status)) {
+          trackPurchase(
+            data.number,
+            data.items.map((item) => ({
+              id: item.sku,
+              name: item.productName,
+              priceCents: item.unitPriceCents,
+              quantity: item.quantity,
+            })),
+            data.totalCents,
+            data.shippingCents,
+          );
+        }
         if (data.status === "PENDING" && attempts < 6) {
           window.setTimeout(() => setAttempts((n) => n + 1), 2500);
         }

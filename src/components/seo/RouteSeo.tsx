@@ -21,14 +21,14 @@ const PRIVATE_PREFIXES = [
 
 const TITLES: Record<string, { title: string; description: string }> = {
   "/": {
-    title: "Roupa de Domingo — estampas com humor ácido",
+    title: "Roupa de Domingo — camisetas engraçadas e estampas com humor ácido",
     description:
       "Camisetas, moletons, canecas e garrafas com estampas de humor de péssima qualidade. Compre hoje e não se arrependa amanhã. Deixe para se arrepender quando chegar na tua casa",
   },
   "/catalogo": {
-    title: "Catálogo completo",
+    title: "Camisetas engraçadas, moletons e canecas — catálogo",
     description:
-      "Todas as estampas de humor ácido em camisetas, moletons, canecas e garrafas.",
+      "Camisetas engraçadas, moletons, canecas e garrafas com estampas de humor ácido. Presente criativo com entrega para todo o Brasil.",
   },
   "/carrinho": {
     title: "Carrinho",

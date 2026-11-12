@@ -10,6 +10,7 @@ import { lookupZipCode } from "../services/zipCode.service";
 import { formatDeliveryEstimate } from "../utils/shipping";
 import { Checkbox } from "../components/ui/Checkbox";
 import { LEGAL_VERSIONS } from "../config/company";
+import { trackBeginCheckout } from "../lib/analytics";
 import {
   Button,
   Card,
@@ -189,6 +190,23 @@ export default function Checkout() {
   } = useCart();
   const { user } = useAuth();
   const { push } = useToast();
+
+  // begin_checkout uma vez por visita ao checkout, quando o carrinho carrega
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (checkoutTracked.current || !cart?.items.length) return;
+    checkoutTracked.current = true;
+    trackBeginCheckout(
+      cart.items.map((item) => ({
+        id: item.sku,
+        name: item.productName,
+        category: item.categoryName,
+        priceCents: item.unitPriceCents,
+        quantity: item.quantity,
+      })),
+      cart.items.reduce((sum, item) => sum + item.totalCents, 0),
+    );
+  }, [cart]);
 
   const [form, setForm] = useState<FormState>(EMPTY);
   const [errors, setErrors] = useState<

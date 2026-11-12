@@ -14,6 +14,7 @@ import { CookieBanner } from "./components/legal/CookieBanner";
 import { FakeDiscountPrank } from "./components/easter-eggs/FakeDiscountPrank";
 import { HumorWarning } from "./components/easter-eggs/HumorWarning";
 import { RouteSeo } from "./components/seo/RouteSeo";
+import { AnalyticsLoader } from "./components/analytics/AnalyticsLoader";
 
 const Home = lazyWithReload(() => import("./pages/Home"));
 const Catalog = lazyWithReload(() => import("./pages/Catalog"));
@@ -68,6 +69,7 @@ export default function App() {
     <ThemeProvider theme={themesByMode[themeMode]}>
       <GlobalStyle />
       <RouteSeo />
+      <AnalyticsLoader />
       <a className="skip-link" href="#conteudo">
         Pular para o conteúdo
       </a>

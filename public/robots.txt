@@ -1,4 +1,7 @@
 # Roupa de Domingo
+# Buscadores e assistentes de IA sao bem-vindos nas paginas publicas
+# (catalogo, produtos, guias e politicas). Resumo para IAs: /llms.txt
+
 User-agent: *
 Allow: /
 # Rotas privadas ou sem valor de busca
@@ -11,6 +14,40 @@ Disallow: /cadastro
 Disallow: /esqueci-a-senha
 Disallow: /redefinir-senha
 Disallow: /verificar-email
+Disallow: /confirmar-cadastro
+Disallow: /trofeus
+Disallow: /segredo
+Disallow: /tchau
+Disallow: /api/
+
+# Robos de IA (busca e treinamento): mesmas regras acima, declaradas por nome
+# para deixar explicito que o acesso as paginas publicas e permitido.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Meta-ExternalAgent
+User-agent: CCBot
+Allow: /
+Disallow: /conta
+Disallow: /checkout
+Disallow: /carrinho
+Disallow: /pagamento/
+Disallow: /entrar
+Disallow: /cadastro
+Disallow: /esqueci-a-senha
+Disallow: /redefinir-senha
+Disallow: /verificar-email
+Disallow: /confirmar-cadastro
+Disallow: /trofeus
+Disallow: /segredo
+Disallow: /tchau
 Disallow: /api/
 
 Sitemap: https://roupadedomingo.com.br/sitemap.xml

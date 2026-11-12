@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { LegalPage } from "../../components/legal/LegalPage";
 import { COMPANY, COMPANY_ADDRESS_LINE, LEGAL_VERSIONS } from "../../config/company";
+import { ANALYTICS, hasAnyTracker } from "../../config/analytics";
 
 const PURPOSES = [
   {
@@ -66,6 +67,12 @@ const PROCESSORS = [
   { name: "Provedor de e-mail transacional (SMTP)", role: "Envio de confirmação de pedido, redefinição de senha e respostas do SAC", data: "Nome, e-mail e conteúdo da mensagem", country: "A definir; esta política será atualizada ao contratar" },
   { name: "ViaCEP", role: "Preenchimento automático do endereço pelo CEP", data: "Apenas o CEP digitado, consultado diretamente pelo seu navegador", country: "Brasil" },
   { name: "Empresa Brasileira de Correios e Telégrafos (Correios)", role: "Entrega e logística reversa de devoluções", data: "Nome e endereço de quem recebe, conteúdo e valor declarado do pacote", country: "Brasil" },
+  ...(ANALYTICS.gaMeasurementId
+    ? [{ name: "Google (Google Analytics 4)", role: "Estatísticas de uso do site, só com consentimento", data: "Páginas vistas, produtos vistos, compras (valor e número do pedido), IP anonimizado e identificador do navegador", country: "Estados Unidos" }]
+    : []),
+  ...(ANALYTICS.metaPixelId
+    ? [{ name: "Meta Platforms (Meta Pixel)", role: "Medição de anúncios no Instagram e no Facebook, só com consentimento", data: "Páginas e produtos vistos, compras (valor e número do pedido) e identificador do navegador", country: "Estados Unidos" }]
+    : []),
 ];
 
 export default function Privacy() {
@@ -118,9 +125,11 @@ export default function Privacy() {
       </table>
       <p>
         <strong>O que não coletamos:</strong> dados de cartão (digitados apenas no ambiente do
-        Mercado Pago), dados sensíveis (art. 5º, II), localização precisa, biometria. Não usamos
-        ferramentas de analytics, pixels de anúncio nem fontes ou scripts de terceiros que
-        rastreiem você; as fontes do site são servidas pelo nosso próprio servidor.
+        Mercado Pago), dados sensíveis (art. 5º, II), localização precisa, biometria.{" "}
+        {hasAnyTracker
+          ? `Ferramentas de medição de terceiros (${[ANALYTICS.gaMeasurementId && "Google Analytics", ANALYTICS.metaPixelId && "Meta Pixel"].filter(Boolean).join(" e ")}) só são carregadas com o seu consentimento (art. 7º, I), recebem apenas dados de navegação e de compra (produto, valor, número do pedido), nunca nome, e-mail, CPF ou endereço, e podem ser desligadas a qualquer momento em “Preferências de cookies”.`
+          : "Não usamos ferramentas de analytics, pixels de anúncio nem scripts de terceiros que rastreiem você."}{" "}
+        As fontes do site são servidas pelo nosso próprio servidor.
       </p>
       <p>
         Não tomamos decisões automatizadas que afetem seus interesses (art. 20), além do bloqueio

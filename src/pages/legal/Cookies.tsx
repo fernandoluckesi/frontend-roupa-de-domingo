@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { LegalPage } from "../../components/legal/LegalPage";
 import { Button } from "../../components/ui";
 import { LEGAL_VERSIONS } from "../../config/company";
+import { ANALYTICS } from "../../config/analytics";
 import { useConsent } from "../../contexts/ConsentContext";
 
 const STORAGE_ITEMS = [
@@ -14,13 +15,27 @@ const STORAGE_ITEMS = [
   { key: "rd:humorWarningAccepted", type: "localStorage", category: "Essencial", purpose: "Lembra que você já leu o aviso de que o site é de humor, para não mostrá-lo a cada visita.", duration: "Até você limpar os dados do navegador" },
   { key: "rd:fakeDiscountShown", type: "localStorage", category: "Essencial", purpose: "Lembra que a pegadinha do desconto já apareceu, para ela nunca mais se repetir neste navegador.", duration: "Até você limpar os dados do navegador" },
   { key: "rd:themeMode", type: "localStorage", category: "Preferências", purpose: "Lembra o tema visual escolhido (incluindo o modo caos).", duration: "Até revogar ou limpar o navegador" },
-  { key: "rd:emptyCartViews", type: "sessionStorage", category: "Preferências", purpose: "Conta visitas ao carrinho vazio (easter egg).", duration: "Até fechar a aba" },];
+  { key: "rd:emptyCartViews", type: "sessionStorage", category: "Preferências", purpose: "Conta visitas ao carrinho vazio (easter egg).", duration: "Até fechar a aba" },
+  ...(ANALYTICS.gaMeasurementId
+    ? [
+        { key: "_ga, _ga_*", type: "Cookie (Google Analytics)", category: "Estatísticas", purpose: "Conta visitas e páginas vistas de forma agregada, para sabermos o que funciona no site.", duration: "Até 2 anos, ou até revogar" },
+        { key: "rd:purchaseTracked", type: "sessionStorage", category: "Estatísticas", purpose: "Evita contar a mesma compra duas vezes ao recarregar a página do pedido.", duration: "Até fechar a aba" },
+      ]
+    : []),
+  ...(ANALYTICS.metaPixelId
+    ? [{ key: "_fbp, _fbc", type: "Cookie (Meta Pixel)", category: "Marketing", purpose: "Mede quem chegou por anúncios no Instagram e no Facebook e ajuda a mostrar anúncios da loja.", duration: "Até 90 dias, ou até revogar" }]
+    : []),
+];
 
 const CATEGORIES = [
   { name: "Essenciais", status: "Sempre ativos", text: "Necessários para o login, o carrinho, o frete e o pagamento funcionarem. Não dependem de consentimento (LGPD, art. 7º, V)." },
   { name: "Preferências", status: "Opcional", text: "Lembram escolhas de navegação, como o tema e os easter eggs. Se recusar, o site funciona normalmente, só esquece essas escolhas." },
-  { name: "Estatísticas", status: "Opcional · nenhum em uso", text: "Mediriam o uso do site de forma agregada. Hoje não usamos nenhuma ferramenta de analytics." },
-  { name: "Marketing", status: "Opcional · nenhum em uso", text: "Serviriam para anúncios personalizados. Hoje não há pixel de anúncio nem cookie de terceiros." },
+  ANALYTICS.gaMeasurementId
+    ? { name: "Estatísticas", status: "Opcional", text: "Google Analytics 4: mede o uso do site de forma agregada (páginas vistas, produtos vistos, compras), com IP anonimizado. Só carrega se você permitir." }
+    : { name: "Estatísticas", status: "Opcional · nenhum em uso", text: "Mediriam o uso do site de forma agregada. Hoje não usamos nenhuma ferramenta de analytics." },
+  ANALYTICS.metaPixelId
+    ? { name: "Marketing", status: "Opcional", text: "Meta Pixel (Instagram/Facebook): mede quem chegou pelos nossos anúncios e permite mostrar anúncios da loja. Só carrega se você permitir." }
+    : { name: "Marketing", status: "Opcional · nenhum em uso", text: "Serviriam para anúncios personalizados. Hoje não há pixel de anúncio nem cookie de terceiros." },
 ];
 
 export default function Cookies() {
@@ -105,7 +120,9 @@ export default function Cookies() {
 
       <h2 id="terceiros">Terceiros</h2>
       <p>
-        Não há cookies de terceiros no site. Ao pagar, você é levado ao ambiente do Mercado Pago,
+        {ANALYTICS.gaMeasurementId || ANALYTICS.metaPixelId
+          ? `Os únicos cookies de terceiros são os ${[ANALYTICS.gaMeasurementId && "do Google Analytics (Estatísticas)", ANALYTICS.metaPixelId && "do Meta Pixel (Marketing)"].filter(Boolean).join(" e ")}, carregados só depois do seu consentimento e apagados quando você revoga.`
+          : "Não há cookies de terceiros no site."} Ao pagar, você é levado ao ambiente do Mercado Pago,
         que tem a própria política de cookies. Se um dia adicionarmos ferramentas de estatística
         ou marketing, elas só serão carregadas <strong>depois</strong> do seu consentimento na
         categoria correspondente, e esta página será atualizada com uma nova versão — o que faz o
