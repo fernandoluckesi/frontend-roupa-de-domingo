@@ -120,7 +120,9 @@ export function ProductCard({ product }: { product: Product }) {
         <Price>
           <strong>{formatBRL(cheapest)}</strong>
           <small>
-            ★ {product.rating.toFixed(1)} ({product.ratingCount})
+            {product.ratingCount > 0
+              ? `★ ${product.rating.toFixed(1)} (${product.ratingCount})`
+              : "Novidade"}
           </small>
         </Price>
       </Body>

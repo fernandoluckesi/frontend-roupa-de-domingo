@@ -54,6 +54,7 @@ export const HUMOR_LABELS: Record<string, string> = {
   MEMES: "Memes",
   PARA_CASAIS: "Para casais",
   POLITICO: "Político",
+  NERD: "Nerd",
 };
 
 export const GENDER_LABELS: Record<string, string> = {

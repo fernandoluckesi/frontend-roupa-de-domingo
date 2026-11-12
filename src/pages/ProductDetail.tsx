@@ -678,8 +678,9 @@ export default function ProductDetail() {
               <li>Estampado e embalado por nós, enviado pelos Correios</li>
               <li>Pagamento processado pelo Mercado Pago</li>
               <li>
-                ★ {product.rating.toFixed(1)} de {product.ratingCount}{" "}
-                avaliações
+                {product.ratingCount > 0
+                  ? `★ ${product.rating.toFixed(1)} de ${product.ratingCount} avaliações`
+                  : "Novidade: ainda sem avaliações"}
               </li>
             </Facts>
           </Info>

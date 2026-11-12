@@ -4,7 +4,8 @@ export type Humor =
   | "EXISTENCIAL"
   | "MEMES"
   | "PARA_CASAIS"
-  | "POLITICO";
+  | "POLITICO"
+  | "NERD";
 
 /**
  * Publico-alvo da peca. UNISSEX funciona como "qualquer" no filtro: escolher

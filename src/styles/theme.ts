@@ -32,6 +32,7 @@ export const palette = {
   violet: "#9d8cff",
   mint: "#4ee6c1",
   pink: "#ff6b9d",
+  cyan: "#3fd0ff",
 
   // Feedback
   red: "#ff5c5c",
@@ -108,6 +109,7 @@ export const theme: AppTheme = {
     MEMES: palette.blue,
     PARA_CASAIS: palette.pink,
     POLITICO: palette.mint,
+    NERD: palette.cyan,
   },
   orderStatus: {
     PENDING: palette.amber,
