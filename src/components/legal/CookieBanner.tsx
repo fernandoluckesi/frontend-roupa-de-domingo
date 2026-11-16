@@ -7,20 +7,21 @@ import { isQuietRoute } from "../../config/quietRoutes";
 import { useHumorWarningAccepted } from "../../hooks/useHumorWarning";
 
 const Banner = styled.div`
+  /* Barra presa ao rodape da tela, ocupando toda a largura, com os textos centralizados */
   position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 60;
-  max-width: 660px;
-  width: calc(100% - ${({ theme }) => theme.spacing(8)});
+  width: 100%;
   max-height: calc(100dvh - ${({ theme }) => theme.spacing(8)});
   overflow-y: auto;
   background: ${({ theme }) => theme.colors.surface};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.lg};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
   padding: ${({ theme }) => theme.spacing(5)};
+  padding-bottom: calc(${({ theme }) => theme.spacing(5)} + env(safe-area-inset-bottom, 0px));
   box-shadow: ${({ theme }) => theme.shadow.lg};
+  text-align: center;
 
   h2 {
     font-size: 1rem;
@@ -41,26 +42,33 @@ const Banner = styled.div`
   }
 
   .actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: ${({ theme }) => theme.spacing(2)};
   }
 
-  .configure {
-    grid-column: 1 / -1;
+  .actions > * {
+    flex: 0 1 220px;
   }
 
   .categories {
     display: grid;
-    gap: ${({ theme }) => theme.spacing(3)};
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: ${({ theme }) => theme.spacing(4)};
     margin-bottom: ${({ theme }) => theme.spacing(4)};
+  }
+
+  .category {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .category small {
     display: block;
     color: ${({ theme }) => theme.colors.textFaint};
     font-size: 0.78rem;
-    margin-left: 24px;
   }
 
   @media print {
