@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type MouseEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { catalogService } from "../services/catalog.service";
@@ -61,6 +61,27 @@ const MainImage = styled.div`
     height: 100%;
     object-fit: cover;
   }
+
+  /* Zoom ao passar o mouse: amplia no ponto em que o cursor esta (--zoom-x/--zoom-y).
+     So em aparelhos com mouse; no toque a foto fica como esta. */
+  @media (hover: hover) and (pointer: fine) {
+    cursor: zoom-in;
+
+    img {
+      transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%);
+      transition: transform 0.2s ease-out;
+    }
+
+    &:hover img {
+      transform: scale(2.2);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    img {
+      transition: none;
+    }
+  }
 `;
 
 const Thumbs = styled.div`
@@ -112,6 +133,8 @@ const Info = styled.div`
     color: ${({ theme }) => theme.colors.textSoft};
     font-size: 0.94rem;
     line-height: 1.65;
+    /* Descrições com lista (ex.: estampa com várias frases) usam quebras de linha */
+    white-space: pre-line;
   }
 `;
 
@@ -255,6 +278,15 @@ const Facts = styled.ul`
     font-weight: 800;
   }
 `;
+
+/** Guarda a posicao do cursor na foto (em %) para o zoom ampliar naquele ponto. */
+function trackZoom(event: MouseEvent<HTMLDivElement>) {
+  const box = event.currentTarget.getBoundingClientRect();
+  const x = ((event.clientX - box.left) / box.width) * 100;
+  const y = ((event.clientY - box.top) / box.height) * 100;
+  event.currentTarget.style.setProperty("--zoom-x", `${Math.min(100, Math.max(0, x))}%`);
+  event.currentTarget.style.setProperty("--zoom-y", `${Math.min(100, Math.max(0, y))}%`);
+}
 
 const imageIndexForColor = (images: ProductImage[], color?: string | null) =>
   Math.max(0, color ? images.findIndex((img) => img.color === color) : 0);
@@ -465,7 +497,7 @@ export default function ProductDetail() {
 
         <Layout>
           <Gallery>
-            <MainImage>
+            <MainImage onMouseEnter={trackZoom} onMouseMove={trackZoom}>
               {image && (
                 <img src={image.url} alt={image.alt || product.name} width={800} height={800} fetchPriority="high" />
               )}
@@ -520,7 +552,8 @@ export default function ProductDetail() {
 
             {colors.length > 0 && (
               <OptionRow>
-                <Label>Cor</Label>
+                {/* Em canecas e garrafas a opção escolhe o modelo da peça (branca, mágica, Queta Soft...) */}
+                <Label>{["canecas", "garrafas"].includes(product.category?.slug) ? "Modelo" : "Cor"}</Label>
                 <Options>
                   {colors.map((value) => (
                     <Option
