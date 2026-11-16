@@ -112,6 +112,8 @@ const Info = styled.div`
     color: ${({ theme }) => theme.colors.textSoft};
     font-size: 0.94rem;
     line-height: 1.65;
+    /* Descrições com lista (ex.: estampa com várias frases) usam quebras de linha */
+    white-space: pre-line;
   }
 `;
 
