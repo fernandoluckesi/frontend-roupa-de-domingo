@@ -3,3 +3,6 @@ dist
 .env
 *.log
 .DS_Store
+
+# Pasta temporaria dos scripts de arte (scripts/brand, backend scripts/artwork)
+.tmp-art/
