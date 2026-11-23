@@ -22,7 +22,28 @@ export interface ProductFilters {
   includeSecret?: boolean;
 }
 
+/** Sugestão da barra de busca: um produto (cada peça da frase aparece separada). */
+export interface SearchSuggestion {
+  slug: string;
+  name: string;
+  /** Tipo da peça: "Camiseta de algodão", "Caneca"... */
+  pieceLabel: string;
+  imageUrl: string | null;
+  priceCents: number;
+}
+
+export interface SearchSuggestions {
+  /** Quantos produtos a busca encontrou */
+  total: number;
+  items: SearchSuggestion[];
+}
+
 export const catalogService = {
+  async suggest(q: string): Promise<SearchSuggestions> {
+    const { data } = await api.get<SearchSuggestions>("/products/suggest", { params: { q } });
+    return data;
+  },
+
   async list(filters: ProductFilters = {}): Promise<Paginated<Product>> {
     const params = Object.fromEntries(
       Object.entries(filters).filter(

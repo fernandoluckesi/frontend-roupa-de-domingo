@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { Container } from "../ui/Layout";
-import { Input } from "../ui/Form";
 import { useCart } from "../../contexts/CartContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEasterEggs } from "../../contexts/EasterEggContext";
@@ -10,6 +9,7 @@ import { useClickStreak } from "../../hooks/useEasterEggTriggers";
 import { Icon } from "../ui/Icon";
 import { MobileMenu } from "./MobileMenu";
 import { UserMenu } from "./UserMenu";
+import { SearchBox } from "./SearchBox";
 
 /** Abre o menu lateral de qualquer lugar (ex.: botão "Filtrar" do catálogo no mobile). */
 export const openMobileMenu = (section?: "filters") =>
@@ -65,29 +65,12 @@ const MenuButton = styled.button`
 `;
 
 /** Busca em linha própria, largura total, abaixo do header no mobile */
-const MobileSearch = styled.form`
+const MobileSearch = styled.div`
   display: none;
   padding: 0 ${({ theme }) => theme.spacing(4)} ${({ theme }) => theme.spacing(3)};
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     display: block;
-  }
-`;
-
-const SearchField = styled.div`
-  position: relative;
-
-  svg {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: ${({ theme }) => theme.colors.textFaint};
-    pointer-events: none;
-  }
-
-  input {
-    padding-left: 40px;
   }
 `;
 
@@ -178,7 +161,7 @@ const Nav = styled.nav`
   }
 `;
 
-const SearchForm = styled.form`
+const SearchForm = styled.div`
   flex: 1;
   max-width: 640px;
   margin-left: auto;
@@ -221,7 +204,6 @@ export function Header() {
   const { itemCount } = useCart();
   const { user } = useAuth();
   const { discover, themeMode, setThemeMode, progress } = useEasterEggs();
-  const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuSection, setMenuSection] = useState<"filters" | null>(null);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
@@ -240,15 +222,6 @@ export function Header() {
     setThemeMode(themeMode === "sunday" ? "default" : "sunday");
     void discover("LOGO_SETE_CLIQUES");
   });
-
-  const submitSearch = (event: FormEvent) => {
-    event.preventDefault();
-    navigate(
-      search.trim()
-        ? `/catalogo?search=${encodeURIComponent(search.trim())}`
-        : "/catalogo",
-    );
-  };
 
   return (
     <Bar>
@@ -281,17 +254,8 @@ export function Header() {
           </span>
         </Logo>
 
-        <SearchForm onSubmit={submitSearch} role="search">
-          <SearchField>
-            <Icon name="search" size={18} />
-            <Input
-              type="search"
-              placeholder="Busque por frase, humor, produto..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label="Buscar produtos"
-            />
-          </SearchField>
+        <SearchForm>
+          <SearchBox placeholder="Busque por frase, humor, produto..." />
         </SearchForm>
 
         <Nav>
@@ -330,17 +294,8 @@ export function Header() {
         </Actions>
       </Inner>
 
-      <MobileSearch onSubmit={submitSearch} role="search">
-        <SearchField>
-          <Icon name="search" size={18} />
-          <Input
-            type="search"
-            placeholder="Estou buscando..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Buscar produtos"
-          />
-        </SearchField>
+      <MobileSearch>
+        <SearchBox placeholder="Estou buscando..." />
       </MobileSearch>
 
       <MobileMenu open={menuOpen} onClose={closeMenu} focusSection={menuSection} />
