@@ -71,9 +71,19 @@ server {
     try_files $uri $uri/ /index.html;
   }
 
-  location ~* \.(js|css|woff2?|png|jpg|jpeg|webp|avif|svg|ico)$ {
-    expires 30d;
+  # Build do Vite: o nome do arquivo leva o hash do conteudo, entao pode ser imutavel
+  location ^~ /assets/ {
+    expires 1y;
     add_header Cache-Control "public, immutable";
+    include /etc/nginx/conf.d/security-headers.inc;
+  }
+
+  # Arquivos de public/ (fotos de produto, artes, icones): o nome NAO muda quando o arquivo e
+  # trocado, entao nada de "immutable". Cache de 1 dia; as fotos do catalogo ainda levam ?v= na URL
+  # (IMAGE_VERSION em backend prisma/catalog.ts) para a troca valer na hora.
+  location ~* \.(js|css|woff2?|png|jpg|jpeg|webp|avif|svg|ico)$ {
+    expires 1d;
+    add_header Cache-Control "public";
     include /etc/nginx/conf.d/security-headers.inc;
   }
 }
