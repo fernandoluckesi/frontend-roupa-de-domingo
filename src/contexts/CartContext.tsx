@@ -22,11 +22,7 @@ interface CartContextValue {
   itemCount: number;
   zipCode: string;
   shippingMethod: "economico" | "expresso";
-  addItem: (
-    variantId: string,
-    quantity?: number,
-    options?: { silent?: boolean },
-  ) => Promise<boolean>;
+  addItem: (variantId: string, quantity?: number) => Promise<boolean>;
   updateItem: (itemId: string, quantity: number) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   clear: () => Promise<void>;
@@ -86,20 +82,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [discover],
   );
 
+  // Sem aviso de sucesso: quem confirma a adição é a gaveta do carrinho
   const addItem = useCallback(
-    async (
-      variantId: string,
-      quantity = 1,
-      options?: { silent?: boolean },
-    ) => {
+    async (variantId: string, quantity = 1) => {
       try {
         handleResult(await cartService.addItem(variantId, quantity));
-        if (options?.silent) return true;
-        push({
-          variant: "success",
-          title: "Adicionado ao carrinho",
-          message: "Decisão questionável, mas respeitamos.",
-        });
         return true;
       } catch (error) {
         push({
@@ -216,10 +203,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   /** Easter egg #4: carrinho vazio aberto três vezes na mesma sessão. */
   const registerEmptyCartView = useCallback(() => {
     // Sem consentimento de preferências, a contagem fica só na memória da aba
-    const stored = hasConsent("preferences") ? Number(sessionStorage.getItem(EMPTY_VIEWS_KEY) ?? "0") : emptyViewsMemory.current;
+    const stored = hasConsent("preferences")
+      ? Number(sessionStorage.getItem(EMPTY_VIEWS_KEY) ?? "0")
+      : emptyViewsMemory.current;
     const views = stored + 1;
     emptyViewsMemory.current = views;
-    if (hasConsent("preferences")) sessionStorage.setItem(EMPTY_VIEWS_KEY, String(views));
+    if (hasConsent("preferences"))
+      sessionStorage.setItem(EMPTY_VIEWS_KEY, String(views));
     if (views === 3) void discover("CARRINHO_VAZIO_TRES_VEZES");
   }, [discover]);
 

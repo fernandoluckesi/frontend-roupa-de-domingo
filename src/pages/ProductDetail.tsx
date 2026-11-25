@@ -1,8 +1,15 @@
-import { useEffect, useMemo, useState, type FormEvent, type MouseEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+  type MouseEvent,
+} from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { catalogService } from "../services/catalog.service";
 import { useCart } from "../contexts/CartContext";
+import { useCartDrawer } from "../contexts/CartDrawerContext";
 import { cartService } from "../services/cart.service";
 import { extractError } from "../services/http";
 import { ProductCard, ProductGrid } from "../components/product/ProductCard";
@@ -21,7 +28,12 @@ import {
 } from "../components/ui";
 import { formatBRL, maskZipCode } from "../utils/format";
 import { formatDeliveryEstimate } from "../utils/shipping";
-import type { Product, ProductImage, ProductVariant, ShippingOption } from "../types";
+import type {
+  Product,
+  ProductImage,
+  ProductVariant,
+  ShippingOption,
+} from "../types";
 import { sortVariants, sortedOptionValues } from "../utils/variantOrder";
 import { Seo, absoluteUrl } from "../components/seo/Seo";
 import { Breadcrumb } from "../components/seo/Breadcrumb";
@@ -154,7 +166,8 @@ const Specs = styled.details`
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: ${({ theme }) => theme.colors.textFaint};
-    margin: ${({ theme }) => theme.spacing(4)} 0 ${({ theme }) => theme.spacing(2)};
+    margin: ${({ theme }) => theme.spacing(4)} 0
+      ${({ theme }) => theme.spacing(2)};
   }
 
   li {
@@ -284,8 +297,14 @@ function trackZoom(event: MouseEvent<HTMLDivElement>) {
   const box = event.currentTarget.getBoundingClientRect();
   const x = ((event.clientX - box.left) / box.width) * 100;
   const y = ((event.clientY - box.top) / box.height) * 100;
-  event.currentTarget.style.setProperty("--zoom-x", `${Math.min(100, Math.max(0, x))}%`);
-  event.currentTarget.style.setProperty("--zoom-y", `${Math.min(100, Math.max(0, y))}%`);
+  event.currentTarget.style.setProperty(
+    "--zoom-x",
+    `${Math.min(100, Math.max(0, x))}%`,
+  );
+  event.currentTarget.style.setProperty(
+    "--zoom-y",
+    `${Math.min(100, Math.max(0, y))}%`,
+  );
 }
 
 const imageIndexForColor = (images: ProductImage[], color?: string | null) =>
@@ -298,6 +317,7 @@ export default function ProductDetail() {
   const { slug = "" } = useParams();
   const navigate = useNavigate();
   const { addItem, zipCode: savedZipCode, setShipping } = useCart();
+  const { openCart } = useCartDrawer();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -402,9 +422,7 @@ export default function ProductDetail() {
   const handleAdd = async (mode: "cart" | "buy") => {
     if (!selectedVariant) return;
     setAdding(mode);
-    const added = await addItem(selectedVariant.id, quantity, {
-      silent: mode === "buy",
-    });
+    const added = await addItem(selectedVariant.id, quantity);
     setAdding(null);
     if (added) {
       trackAddToCart({
@@ -417,6 +435,8 @@ export default function ProductDetail() {
     }
     // Comprar agora: o item já está no carrinho, segue direto para o checkout
     if (added && mode === "buy") navigate("/checkout");
+    // Adicionar ao carrinho: a gaveta confirma a adição e resume a compra
+    else if (added) openCart();
   };
 
   const simulateShipping = async (event: FormEvent) => {
@@ -448,9 +468,15 @@ export default function ProductDetail() {
   };
 
   const guide = sizeGuideFor(product.category.slug);
-  const availablePrices = product.variants.filter((v) => v.isAvailable !== false).map((v) => v.priceCents);
-  const lowPrice = availablePrices.length ? Math.min(...availablePrices) : product.basePriceCents;
-  const highPrice = availablePrices.length ? Math.max(...availablePrices) : product.basePriceCents;
+  const availablePrices = product.variants
+    .filter((v) => v.isAvailable !== false)
+    .map((v) => v.priceCents);
+  const lowPrice = availablePrices.length
+    ? Math.min(...availablePrices)
+    : product.basePriceCents;
+  const highPrice = availablePrices.length
+    ? Math.max(...availablePrices)
+    : product.basePriceCents;
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -466,11 +492,19 @@ export default function ProductDetail() {
       lowPrice: (lowPrice / 100).toFixed(2),
       highPrice: (highPrice / 100).toFixed(2),
       offerCount: product.variants.length || 1,
-      availability: availablePrices.length ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      availability: availablePrices.length
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
       url: absoluteUrl(`/produto/${product.slug}`),
     },
     ...(product.ratingCount > 0
-      ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.ratingCount } }
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: product.rating,
+            reviewCount: product.ratingCount,
+          },
+        }
       : {}),
   };
 
@@ -490,7 +524,10 @@ export default function ProductDetail() {
           items={[
             { label: "Início", to: "/" },
             { label: "Catálogo", to: "/catalogo" },
-            { label: product.category.name, to: `/catalogo?category=${product.category.slug}` },
+            {
+              label: product.category.name,
+              to: `/catalogo?category=${product.category.slug}`,
+            },
             { label: product.name, to: `/produto/${product.slug}` },
           ]}
         />
@@ -499,7 +536,13 @@ export default function ProductDetail() {
           <Gallery>
             <MainImage onMouseEnter={trackZoom} onMouseMove={trackZoom}>
               {image && (
-                <img src={image.url} alt={image.alt || product.name} width={800} height={800} fetchPriority="high" />
+                <img
+                  src={image.url}
+                  alt={image.alt || product.name}
+                  width={800}
+                  height={800}
+                  fetchPriority="high"
+                />
               )}
             </MainImage>
             {product.images.length > 1 && (
@@ -511,7 +554,13 @@ export default function ProductDetail() {
                     onClick={() => setImageIndex(index)}
                     aria-label={`Imagem ${index + 1}`}
                   >
-                    <img src={img.url} alt={img.alt || `${product.name}, foto ${index + 1}`} width={120} height={120} loading="lazy" />
+                    <img
+                      src={img.url}
+                      alt={img.alt || `${product.name}, foto ${index + 1}`}
+                      width={120}
+                      height={120}
+                      loading="lazy"
+                    />
                   </Thumb>
                 ))}
               </Thumbs>
@@ -526,8 +575,9 @@ export default function ProductDetail() {
             <p className="price">{formatBRL(priceCents)}</p>
             {/* Sem "sem juros": o parcelamento é do Mercado Pago e pode ter juros, exibidos antes de pagar */}
             <p className="installment">
-              Pix ou cartão em até 12x pelo Mercado Pago (juros do parcelamento, se houver, aparecem antes de você
-              confirmar). <Link to="/pagamentos">Ver condições</Link>
+              Pix ou cartão em até 12x pelo Mercado Pago (juros do parcelamento,
+              se houver, aparecem antes de você confirmar).{" "}
+              <Link to="/pagamentos">Ver condições</Link>
             </p>
 
             <Divider />
@@ -553,7 +603,11 @@ export default function ProductDetail() {
             {colors.length > 0 && (
               <OptionRow>
                 {/* Em canecas e garrafas a opção escolhe o modelo da peça (branca, mágica, Queta Soft...) */}
-                <Label>{["canecas", "garrafas"].includes(product.category?.slug) ? "Modelo" : "Cor"}</Label>
+                <Label>
+                  {["canecas", "garrafas"].includes(product.category?.slug)
+                    ? "Modelo"
+                    : "Cor"}
+                </Label>
                 <Options>
                   {colors.map((value) => (
                     <Option
@@ -663,7 +717,11 @@ export default function ProductDetail() {
 
             {guide && (
               <Specs>
-                <summary>{guide.kind === "apparel" ? "Medidas, composição e cuidados" : "Especificações e cuidados"}</summary>
+                <summary>
+                  {guide.kind === "apparel"
+                    ? "Medidas, composição e cuidados"
+                    : "Especificações e cuidados"}
+                </summary>
                 {guide.kind === "apparel" ? (
                   <>
                     <h3>Composição</h3>
@@ -693,11 +751,16 @@ export default function ProductDetail() {
                 </ul>
                 <h3>Cor</h3>
                 <ul>
-                  <li>A cor impressa pode variar levemente em relação à tela, conforme o monitor e a impressão.</li>
+                  <li>
+                    A cor impressa pode variar levemente em relação à tela,
+                    conforme o monitor e a impressão.
+                  </li>
                 </ul>
                 <p style={{ marginTop: 12 }}>
                   <Link to="/guia-de-tamanhos">
-                    {guide.kind === "apparel" ? "Ver a tabela de medidas completa" : "Ver o guia completo"}
+                    {guide.kind === "apparel"
+                      ? "Ver a tabela de medidas completa"
+                      : "Ver o guia completo"}
                   </Link>
                 </p>
               </Specs>
@@ -707,7 +770,10 @@ export default function ProductDetail() {
 
             <Facts>
               <li>SKU {selectedVariant?.sku}</li>
-              <li>Produção sob demanda em 2 a 4 dias úteis, mais o prazo de transporte</li>
+              <li>
+                Produção sob demanda em 2 a 4 dias úteis, mais o prazo de
+                transporte
+              </li>
               <li>Estampado e embalado por nós, enviado pelos Correios</li>
               <li>Pagamento processado pelo Mercado Pago</li>
               <li>
