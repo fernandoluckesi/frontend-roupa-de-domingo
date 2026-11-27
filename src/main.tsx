@@ -15,6 +15,7 @@ import { ToastProvider } from "./contexts/ToastContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { EasterEggProvider } from "./contexts/EasterEggContext";
 import { CartProvider } from "./contexts/CartContext";
+import { CartDrawerProvider } from "./contexts/CartDrawerContext";
 import { ConsentProvider } from "./contexts/ConsentContext";
 
 // O nginx injeta meta tags por rota (SSI) para robôs e previews de link. No navegador
@@ -43,7 +44,9 @@ createRoot(container).render(
             <AuthProvider>
               <EasterEggProvider>
                 <CartProvider>
-                  <App />
+                  <CartDrawerProvider>
+                    <App />
+                  </CartDrawerProvider>
                 </CartProvider>
               </EasterEggProvider>
             </AuthProvider>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import {
@@ -195,6 +195,7 @@ const Pagination = styled.div`
 `;
 
 const SORTS = [
+  { value: "relevancia", label: "Mais relevantes" },
   { value: "recentes", label: "Mais recentes" },
   { value: "populares", label: "Mais populares" },
   { value: "preco-asc", label: "Menor preço" },
@@ -218,6 +219,39 @@ export default function Catalog() {
   const { alert, alertElement } = useAlert();
 
   const debouncedSearch = useDebouncedValue(searchInput, 450);
+  const urlSearch = params.get("search") ?? "";
+
+  // A busca vive na URL. O que é digitado aqui vai para a URL (voltando para a página 1)...
+  const setParamsRef = useRef(setParams);
+  setParamsRef.current = setParams;
+  const pushedSearch = useRef(urlSearch);
+  useEffect(() => {
+    const text = debouncedSearch.trim();
+    if (text === pushedSearch.current) return;
+    pushedSearch.current = text;
+    setParamsRef.current(
+      (prev) => {
+        if ((prev.get("search") ?? "") === text) return prev;
+        const next = new URLSearchParams(prev);
+        if (text) next.set("search", text);
+        else next.delete("search");
+        next.delete("page");
+        return next;
+      },
+      { replace: true },
+    );
+  }, [debouncedSearch]);
+
+  // ...e o campo acompanha quando ela muda por fora (barra do topo, "Limpar filtros", voltar)
+  useEffect(() => {
+    if (urlSearch === pushedSearch.current) return;
+    pushedSearch.current = urlSearch;
+    setSearchInput(urlSearch);
+  }, [urlSearch]);
+
+  // Com busca, o padrão é a ordem de relevância; sem busca, os mais recentes
+  const sort = params.get("sort") ?? (urlSearch ? "relevancia" : "recentes");
+  const sortOptions = urlSearch ? SORTS : SORTS.filter((option) => option.value !== "relevancia");
 
   const filters = useMemo<ProductFilters>(
     () => ({
@@ -226,14 +260,14 @@ export default function Catalog() {
       // UNISSEX é o "qualquer": não vai para a API, senão esconderia as peças
       // com modelagem masculina e feminina.
       gender: params.get("gender") ?? undefined,
-      search: debouncedSearch || undefined,
-      sort: params.get("sort") ?? "recentes",
+      search: urlSearch || undefined,
+      sort: sort === "relevancia" && !urlSearch ? "recentes" : sort,
       page: Number(params.get("page") ?? "1"),
       limit: 12,
       // só tem efeito no backend se o visitante achou easter eggs suficientes
       includeSecret: progress?.secretProductUnlocked ?? false,
     }),
-    [params, debouncedSearch, progress?.secretProductUnlocked],
+    [params, urlSearch, sort, progress?.secretProductUnlocked],
   );
 
   useEffect(() => {
@@ -433,12 +467,12 @@ export default function Catalog() {
               <Label htmlFor="catalog-sort">Ordenar por</Label>
               <Select
                 id="catalog-sort"
-                value={params.get("sort") ?? "recentes"}
+                value={sort}
                 onChange={(e) => setParam("sort", e.target.value)}
               >
-                {SORTS.map((sort) => (
-                  <option key={sort.value} value={sort.value}>
-                    {sort.label}
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </Select>
@@ -487,12 +521,12 @@ export default function Catalog() {
                 </FilterButton>
                 <Select
                   aria-label="Ordenar por"
-                  value={params.get("sort") ?? "recentes"}
+                  value={sort}
                   onChange={(e) => setParam("sort", e.target.value)}
                 >
-                  {SORTS.map((sort) => (
-                    <option key={sort.value} value={sort.value}>
-                      {sort.label}
+                  {sortOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
                     </option>
                   ))}
                 </Select>

@@ -15,6 +15,7 @@ import { FakeDiscountPrank } from "./components/easter-eggs/FakeDiscountPrank";
 import { HumorWarning } from "./components/easter-eggs/HumorWarning";
 import { RouteSeo } from "./components/seo/RouteSeo";
 import { AnalyticsLoader } from "./components/analytics/AnalyticsLoader";
+import { CartDrawer } from "./components/cart/CartDrawer";
 
 const Home = lazyWithReload(() => import("./pages/Home"));
 const Catalog = lazyWithReload(() => import("./pages/Catalog"));
@@ -32,10 +33,16 @@ const Trophies = lazyWithReload(() => import("./pages/Trophies"));
 const SecretQr = lazyWithReload(() => import("./pages/SecretQr"));
 const Goodbye = lazyWithReload(() => import("./pages/Goodbye"));
 const NotFound = lazyWithReload(() => import("./pages/NotFound"));
-const ForgotPassword = lazyWithReload(() => import("./pages/auth/ForgotPassword"));
-const ResetPassword = lazyWithReload(() => import("./pages/auth/ResetPassword"));
+const ForgotPassword = lazyWithReload(
+  () => import("./pages/auth/ForgotPassword"),
+);
+const ResetPassword = lazyWithReload(
+  () => import("./pages/auth/ResetPassword"),
+);
 const VerifyEmail = lazyWithReload(() => import("./pages/auth/VerifyEmail"));
-const ConfirmRegistration = lazyWithReload(() => import("./pages/auth/ConfirmRegistration"));
+const ConfirmRegistration = lazyWithReload(
+  () => import("./pages/auth/ConfirmRegistration"),
+);
 const Terms = lazyWithReload(() => import("./pages/legal/Terms"));
 const Privacy = lazyWithReload(() => import("./pages/legal/Privacy"));
 const Returns = lazyWithReload(() => import("./pages/legal/Returns"));
@@ -76,51 +83,58 @@ export default function App() {
       <Header />
       <main id="conteudo" tabIndex={-1}>
         <ErrorBoundary key={location.pathname}>
-        <Suspense fallback={<Loading />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/catalogo" element={<Catalog />} />
-            <Route path="/produto/:slug" element={<ProductDetail />} />
-            <Route path="/carrinho" element={<CartPage />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route
-              path="/pagamento/simulado/:orderNumber"
-              element={<MockCheckout />}
-            />
-            <Route path="/pagamento/:outcome" element={<PaymentResult />} />
-            <Route path="/entrar" element={<Login />} />
-            <Route path="/cadastro" element={<Register />} />
-            <Route path="/conta" element={<Account />} />
-            <Route path="/conta/pedidos" element={<Orders />} />
-            <Route path="/conta/pedidos/:number" element={<OrderDetail />} />
-            <Route path="/trofeus" element={<Trophies />} />
-            {/* Destino do QR Code impresso (src/assets/brand/QRCodes) */}
-            <Route path="/segredo" element={<SecretQr />} />
-            <Route path="/tchau" element={<Goodbye />} />
-            <Route path="/esqueci-a-senha" element={<ForgotPassword />} />
-            <Route path="/redefinir-senha" element={<ResetPassword />} />
-            <Route path="/verificar-email" element={<VerifyEmail />} />
-            <Route path="/confirmar-cadastro" element={<ConfirmRegistration />} />
-            <Route path="/termos" element={<Terms />} />
-            <Route path="/privacidade" element={<Privacy />} />
-            <Route path="/trocas-e-devolucoes" element={<Returns />} />
-            <Route path="/cookies" element={<Cookies />} />
-            <Route path="/quem-somos" element={<About />} />
-            <Route path="/contato" element={<Contact />} />
-            <Route path="/fale-conosco" element={<Navigate to="/contato" replace />} />
-            <Route path="/entrega" element={<Shipping />} />
-            <Route path="/guia-de-tamanhos" element={<SizeGuide />} />
-            <Route path="/pagamentos" element={<Payments />} />
-            <Route
-              path="/pedidos"
-              element={<Navigate to="/conta/pedidos" replace />}
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
+          <Suspense fallback={<Loading />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/catalogo" element={<Catalog />} />
+              <Route path="/produto/:slug" element={<ProductDetail />} />
+              <Route path="/carrinho" element={<CartPage />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route
+                path="/pagamento/simulado/:orderNumber"
+                element={<MockCheckout />}
+              />
+              <Route path="/pagamento/:outcome" element={<PaymentResult />} />
+              <Route path="/entrar" element={<Login />} />
+              <Route path="/cadastro" element={<Register />} />
+              <Route path="/conta" element={<Account />} />
+              <Route path="/conta/pedidos" element={<Orders />} />
+              <Route path="/conta/pedidos/:number" element={<OrderDetail />} />
+              <Route path="/trofeus" element={<Trophies />} />
+              {/* Destino do QR Code impresso (src/assets/brand/QRCodes) */}
+              <Route path="/segredo" element={<SecretQr />} />
+              <Route path="/tchau" element={<Goodbye />} />
+              <Route path="/esqueci-a-senha" element={<ForgotPassword />} />
+              <Route path="/redefinir-senha" element={<ResetPassword />} />
+              <Route path="/verificar-email" element={<VerifyEmail />} />
+              <Route
+                path="/confirmar-cadastro"
+                element={<ConfirmRegistration />}
+              />
+              <Route path="/termos" element={<Terms />} />
+              <Route path="/privacidade" element={<Privacy />} />
+              <Route path="/trocas-e-devolucoes" element={<Returns />} />
+              <Route path="/cookies" element={<Cookies />} />
+              <Route path="/quem-somos" element={<About />} />
+              <Route path="/contato" element={<Contact />} />
+              <Route
+                path="/fale-conosco"
+                element={<Navigate to="/contato" replace />}
+              />
+              <Route path="/entrega" element={<Shipping />} />
+              <Route path="/guia-de-tamanhos" element={<SizeGuide />} />
+              <Route path="/pagamentos" element={<Payments />} />
+              <Route
+                path="/pedidos"
+                element={<Navigate to="/conta/pedidos" replace />}
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </ErrorBoundary>
       </main>
       <Footer />
+      <CartDrawer />
       <ToastViewport />
       <CookieBanner />
       <FakeDiscountPrank />
