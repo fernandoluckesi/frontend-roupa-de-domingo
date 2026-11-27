@@ -129,6 +129,15 @@ export default function Privacy() {
         {hasAnyTracker
           ? `Ferramentas de medição de terceiros (${[ANALYTICS.gaMeasurementId && "Google Analytics", ANALYTICS.metaPixelId && "Meta Pixel"].filter(Boolean).join(" e ")}) só são carregadas com o seu consentimento (art. 7º, I), recebem apenas dados de navegação e de compra (produto, valor, número do pedido), nunca nome, e-mail, CPF ou endereço, e podem ser desligadas a qualquer momento em “Preferências de cookies”.`
           : "Não usamos ferramentas de analytics, pixels de anúncio nem scripts de terceiros que rastreiem você."}{" "}
+        Medimos o uso do site no nosso próprio servidor, sem cookie e sem ferramentas de terceiros:
+        de onde a visita veio (QR Code impresso, rede social, link de campanha ou site de origem), as
+        páginas vistas e o tempo em cada uma, buscas e produtos vistos ou colocados no carrinho, tipo de
+        aparelho, sistema, navegador, tamanho da tela, idioma e a cidade aproximada (calculada pelo IP na
+        hora; o IP não é guardado), ligados ao identificador anônimo do carrinho e nunca a nome, e-mail ou
+        CPF. Serve para saber quais divulgações trazem visitas e vendas e onde o site precisa melhorar
+        (legítimo interesse, art. 7º, IX), e é analisado só em números agregados pela equipe. Se você
+        recusar “Estatísticas” nas preferências de cookies, contamos apenas a chegada ao site e a origem,
+        sem páginas, tempo, local ou eventos.{" "}
         As fontes do site são servidas pelo nosso próprio servidor.
       </p>
       <p>

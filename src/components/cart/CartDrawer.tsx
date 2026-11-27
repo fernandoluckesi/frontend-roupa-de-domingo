@@ -545,7 +545,7 @@ export function CartDrawer() {
           <>
             <Scroll>
               {cart.items.map((item) => (
-                <Item key={item.id}>
+                <Item key={item.id} style={item.selected ? undefined : { opacity: 0.55 }}>
                   <div className="thumb">
                     {item.imageUrl && (
                       <img
@@ -569,6 +569,9 @@ export function CartDrawer() {
                       </Link>
                     </h3>
                     <small className="variant">{item.variantLabel}</small>
+                    {!item.selected && (
+                      <small className="variant">Desmarcado: fica no carrinho, fora desta compra</small>
+                    )}
                     {item.customText && (
                       <small className="variant">
                         Texto: “{item.customText}”
@@ -784,7 +787,8 @@ export function CartDrawer() {
                   $full
                   onClick={() => {
                     closeCart();
-                    navigate("/checkout");
+                    // Etapa 1: o carrinho, onde a pessoa escolhe o que levar agora
+                    navigate("/carrinho");
                   }}
                 >
                   Finalizar compra

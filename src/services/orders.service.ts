@@ -6,6 +6,8 @@ export interface CheckoutPayload {
   customerEmail: string;
   customerPhone?: string;
   customerDocument?: string;
+  /** Endereço salvo da conta (o backend usa o endereço gravado) */
+  addressId?: string;
   shippingAddress: {
     recipient: string;
     zipCode: string;

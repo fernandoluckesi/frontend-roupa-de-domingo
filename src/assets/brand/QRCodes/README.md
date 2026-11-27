@@ -45,3 +45,16 @@ tempo de execução, então não precisa dela no `package.json`.
   ficam suprimidos). A rota está em `src/config/quietRoutes.ts`; adicione novas
   rotas lá se precisar do mesmo comportamento.
 - Teste com a câmera do celular depois de imprimir o primeiro lote.
+
+## camiseta-costas.svg · camiseta-costas-1024.png
+
+QR das **costas da camiseta**. Aponta para `/segredo?q=costas`: a mesma página,
+mas o `?q=costas` faz a área "Análise" do backoffice (Aquisição) separar os
+escaneamentos e as vendas que vieram das costas da camiseta.
+
+A arte para impressão (3000 px, 10" a 300 DPI) fica em
+`docs-roupa-de-domingo/catalog/print-arts/qrcode/camiseta-costas-3000px.png`.
+
+Para outro local impresso (etiqueta, embalagem, adesivo), adicione uma linha em
+`VARIANTS` no `scripts/gen-qrcode.cjs` com outro `?q=` e rode o script de novo.
+Veja `docs-roupa-de-domingo/ANALISE-DE-ACESSOS.md`.

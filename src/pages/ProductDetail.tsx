@@ -39,6 +39,7 @@ import { Seo, absoluteUrl } from "../components/seo/Seo";
 import { Breadcrumb } from "../components/seo/Breadcrumb";
 import { sizeGuideFor } from "../content/sizeGuide";
 import { trackAddToCart, trackViewItem } from "../lib/analytics";
+import { trackEvent } from "../lib/visitTracking";
 
 const Layout = styled.div`
   display: grid;
@@ -343,6 +344,7 @@ export default function ProductDetail() {
       .bySlug(slug)
       .then((data) => {
         const variants = sortVariants(data.variants);
+        trackEvent("view_item", data.slug, variants[0]?.priceCents ?? data.basePriceCents);
         trackViewItem({
           id: data.slug,
           name: data.name,
@@ -425,6 +427,7 @@ export default function ProductDetail() {
     const added = await addItem(selectedVariant.id, quantity);
     setAdding(null);
     if (added) {
+      trackEvent("add_to_cart", product.slug, selectedVariant.priceCents * quantity);
       trackAddToCart({
         id: selectedVariant.sku,
         name: product.name,

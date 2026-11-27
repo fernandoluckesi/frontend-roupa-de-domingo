@@ -8,6 +8,7 @@ import { authService } from "../../services/auth.service";
 import { extractError } from "../../services/http";
 import { clearPendingSignupEmail, getPendingSignupEmail, setPendingSignupEmail } from "../../utils/pendingSignup";
 import { AuthPanel } from "./AuthPanel";
+import { consumeAfterAuth } from "../../utils/authRedirect";
 
 const RESEND_COOLDOWN_S = 60;
 
@@ -52,7 +53,8 @@ export default function ConfirmRegistration() {
         title: "Cadastro confirmado",
         message: "Agora você é oficialmente responsável pelas próprias escolhas de estampa.",
       });
-      navigate("/conta", { replace: true });
+      // Conta criada a partir do checkout: volta para o checkout
+      navigate(consumeAfterAuth("/conta"), { replace: true });
     } catch (err) {
       setError(extractError(err, "Não foi possível confirmar o código."));
       setCode("");

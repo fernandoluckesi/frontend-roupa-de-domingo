@@ -115,6 +115,8 @@ export interface CartItem {
   totalCents: number;
   weightGrams: number;
   customText?: string | null;
+  /** Marcado para comprar agora (só os marcados vão para o pedido) */
+  selected: boolean;
 }
 
 export interface ShippingOption {
@@ -140,7 +142,10 @@ export interface Cart {
     shippingCents: number;
     totalCents: number;
     weightGrams: number;
+    /** Unidades no carrinho inteiro */
     itemCount: number;
+    /** Unidades marcadas para comprar agora (os totais são só delas) */
+    selectedCount: number;
   };
   coupon: {
     code: string;
@@ -171,6 +176,8 @@ export interface Address {
   city: string;
   state: string;
   isDefault: boolean;
+  /** Último pedido entregue aqui: o checkout abre com o mais recente selecionado */
+  lastUsedAt?: string | null;
 }
 
 export interface User {

@@ -24,6 +24,10 @@ interface CartContextValue {
   shippingMethod: "economico" | "expresso";
   addItem: (variantId: string, quantity?: number) => Promise<boolean>;
   updateItem: (itemId: string, quantity: number) => Promise<void>;
+  /** Marca ou desmarca um item para comprar agora */
+  selectItem: (itemId: string, selected: boolean) => Promise<void>;
+  /** Marca ou desmarca todos os itens */
+  selectAll: (selected: boolean) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   clear: () => Promise<void>;
   applyCoupon: (code: string) => Promise<boolean>;
@@ -78,8 +82,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (result: Cart) => {
       setCart(result);
       if (result.easterEggTrigger) void discover(result.easterEggTrigger);
+      // As alterações do carrinho voltam sem o frete: recota com o CEP já informado
+      if (zipCode.length === 8 && !result.shipping.zipCode && result.totals.selectedCount > 0) {
+        void cartService
+          .get(zipCode, shippingMethod)
+          .then(setCart)
+          .catch(() => undefined);
+      }
     },
-    [discover],
+    [discover, zipCode, shippingMethod],
   );
 
   // Sem aviso de sucesso: quem confirma a adição é a gaveta do carrinho
@@ -103,7 +114,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateItem = useCallback(
     async (itemId: string, quantity: number) => {
       try {
-        handleResult(await cartService.updateItem(itemId, quantity));
+        handleResult(await cartService.updateItem(itemId, { quantity }));
       } catch (error) {
         push({
           variant: "error",
@@ -113,6 +124,39 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     },
     [handleResult, push],
+  );
+
+  const selectItem = useCallback(
+    async (itemId: string, selected: boolean) => {
+      // Resposta imediata na tela; o servidor recalcula os totais em seguida
+      setCart((current) =>
+        current
+          ? { ...current, items: current.items.map((item) => (item.id === itemId ? { ...item, selected } : item)) }
+          : current,
+      );
+      try {
+        handleResult(await cartService.updateItem(itemId, { selected }));
+      } catch (error) {
+        push({ variant: "error", title: "Não deu", message: extractError(error) });
+        void reload();
+      }
+    },
+    [handleResult, push, reload],
+  );
+
+  const selectAll = useCallback(
+    async (selected: boolean) => {
+      setCart((current) =>
+        current ? { ...current, items: current.items.map((item) => ({ ...item, selected })) } : current,
+      );
+      try {
+        handleResult(await cartService.selectAll(selected));
+      } catch (error) {
+        push({ variant: "error", title: "Não deu", message: extractError(error) });
+        void reload();
+      }
+    },
+    [handleResult, push, reload],
   );
 
   const removeItem = useCallback(
@@ -222,6 +266,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       shippingMethod,
       addItem,
       updateItem,
+      selectItem,
+      selectAll,
       removeItem,
       clear,
       applyCoupon,
@@ -237,6 +283,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       shippingMethod,
       addItem,
       updateItem,
+      selectItem,
+      selectAll,
       removeItem,
       clear,
       applyCoupon,

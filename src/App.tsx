@@ -15,6 +15,7 @@ import { FakeDiscountPrank } from "./components/easter-eggs/FakeDiscountPrank";
 import { HumorWarning } from "./components/easter-eggs/HumorWarning";
 import { RouteSeo } from "./components/seo/RouteSeo";
 import { AnalyticsLoader } from "./components/analytics/AnalyticsLoader";
+import { VisitTracker } from "./components/analytics/VisitTracker";
 import { CartDrawer } from "./components/cart/CartDrawer";
 
 const Home = lazyWithReload(() => import("./pages/Home"));
@@ -77,6 +78,7 @@ export default function App() {
       <GlobalStyle />
       <RouteSeo />
       <AnalyticsLoader />
+      <VisitTracker />
       <a className="skip-link" href="#conteudo">
         Pular para o conteúdo
       </a>

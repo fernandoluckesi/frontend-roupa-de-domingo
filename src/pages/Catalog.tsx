@@ -21,6 +21,7 @@ import { useAlert } from "../hooks/useAlert";
 import { useEasterEggs } from "../contexts/EasterEggContext";
 import { openMobileMenu } from "../components/layout/Header";
 import { Icon } from "../components/ui/Icon";
+import { trackEvent } from "../lib/visitTracking";
 import type {
   Category,
   GenderOption,
@@ -252,6 +253,11 @@ export default function Catalog() {
   // Com busca, o padrão é a ordem de relevância; sem busca, os mais recentes
   const sort = params.get("sort") ?? (urlSearch ? "relevancia" : "recentes");
   const sortOptions = urlSearch ? SORTS : SORTS.filter((option) => option.value !== "relevancia");
+
+  // Busca no site (relatório "Buscas" do backoffice): conta o termo que abriu resultados
+  useEffect(() => {
+    if (urlSearch.trim().length >= 2) trackEvent("search", urlSearch.trim());
+  }, [urlSearch]);
 
   const filters = useMemo<ProductFilters>(
     () => ({

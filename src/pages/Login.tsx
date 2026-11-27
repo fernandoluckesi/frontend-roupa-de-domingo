@@ -1,7 +1,9 @@
-import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { consumeAfterAuth, setAfterAuth } from "../utils/authRedirect";
 import styled from "styled-components";
 import { useAuth } from "../contexts/AuthContext";
+import { AlreadySignedIn } from "../components/auth/AlreadySignedIn";
 import { useToast } from "../contexts/ToastContext";
 import { extractError, extractErrorCode } from "../services/http";
 import { setPendingSignupEmail } from "../utils/pendingSignup";
@@ -57,8 +59,13 @@ const Panel = styled(Card)`
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const { push } = useToast();
+  // Veio do checkout (?voltar=/checkout): depois de entrar ou criar a conta, volta para lá
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    setAfterAuth(searchParams.get("voltar"));
+  }, [searchParams]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -73,13 +80,17 @@ export default function Login() {
     try {
       await login(email.trim().toLowerCase(), password);
       push({ variant: "success", title: "Bem-vindo de volta" });
-      navigate("/conta");
+      navigate(consumeAfterAuth("/conta"));
     } catch (err) {
       const code = extractErrorCode(err);
       if (code === "EMAIL_NOT_VERIFIED") {
         const pending = email.trim().toLowerCase();
         setPendingSignupEmail(pending);
-        push({ variant: "info", title: "Confirme o seu cadastro", message: "Enviamos um código de 6 dígitos para o seu e-mail." });
+        push({
+          variant: "info",
+          title: "Confirme o seu cadastro",
+          message: "Enviamos um código de 6 dígitos para o seu e-mail.",
+        });
         navigate("/confirmar-cadastro", { state: { email: pending } });
         return;
       }
@@ -91,7 +102,12 @@ export default function Login() {
 
   return (
     <Section $tight>
-      <Seo title="Entrar" description="Entre na sua conta da Roupa de Domingo." path="/entrar" noindex />
+      <Seo
+        title="Entrar"
+        description="Entre na sua conta da Roupa de Domingo."
+        path="/entrar"
+        noindex
+      />
       <Container>
         <Panel>
           <h1>Entrar</h1>
@@ -100,53 +116,61 @@ export default function Login() {
             encontrou.
           </p>
 
-          <form onSubmit={submit} noValidate>
-            <Field>
-              <Label htmlFor="login-email">E-mail</Label>
-              <Input
-                id="login-email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </Field>
+          {user ? (
+            <AlreadySignedIn action="entrar" />
+          ) : (
+            <>
+              <form onSubmit={submit} noValidate>
+                <Field>
+                  <Label htmlFor="login-email">E-mail</Label>
+                  <Input
+                    id="login-email"
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </Field>
 
-            <Field>
-              <Label htmlFor="login-password">Senha</Label>
-              <Input
-                id="login-password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError("");
-                }}
-                aria-invalid={Boolean(error) || undefined}
-                aria-describedby={error ? "login-password-error" : undefined}
-                required
-              />
-              {error && (
-                <ErrorText id="login-password-error" role="alert">
-                  {error}
-                </ErrorText>
-              )}
-            </Field>
+                <Field>
+                  <Label htmlFor="login-password">Senha</Label>
+                  <Input
+                    id="login-password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setError("");
+                    }}
+                    aria-invalid={Boolean(error) || undefined}
+                    aria-describedby={
+                      error ? "login-password-error" : undefined
+                    }
+                    required
+                  />
+                  {error && (
+                    <ErrorText id="login-password-error" role="alert">
+                      {error}
+                    </ErrorText>
+                  )}
+                </Field>
 
-            <Button $full $size="lg" type="submit" disabled={submitting}>
-              {submitting ? "Entrando..." : "Entrar"}
-            </Button>
-          </form>
+                <Button $full $size="lg" type="submit" disabled={submitting}>
+                  {submitting ? "Entrando..." : "Entrar"}
+                </Button>
+              </form>
 
-          <p className="alt">
-            <Link to="/esqueci-a-senha">Esqueci minha senha</Link>
-          </p>
+              <p className="alt">
+                <Link to="/esqueci-a-senha">Esqueci minha senha</Link>
+              </p>
 
-          <p className="alt">
-            Sem conta ainda? <Link to="/cadastro">Criar agora</Link>
-          </p>
+              <p className="alt">
+                Sem conta ainda? <Link to="/cadastro">Criar agora</Link>
+              </p>
+            </>
+          )}
 
           {/* Credenciais de demonstração só no ambiente local, nunca em produção */}
           {import.meta.env.DEV && (

@@ -1,7 +1,9 @@
-import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { setAfterAuth } from "../utils/authRedirect";
 import styled from "styled-components";
 import { useAuth } from "../contexts/AuthContext";
+import { AlreadySignedIn } from "../components/auth/AlreadySignedIn";
 import { useToast } from "../contexts/ToastContext";
 import { extractError, extractErrorCode } from "../services/http";
 import { setPendingSignupEmail } from "../utils/pendingSignup";
@@ -68,8 +70,13 @@ type FieldKey = "name" | "email" | "password" | "terms";
 
 export default function Register() {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, user } = useAuth();
   const { push } = useToast();
+  // Veio do checkout (?voltar=/checkout): depois de entrar ou criar a conta, volta para lá
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    setAfterAuth(searchParams.get("voltar"));
+  }, [searchParams]);
 
   const [form, setForm] = useState({
     name: "",
@@ -183,134 +190,146 @@ export default function Register() {
             mentiras.
           </p>
 
-          <form onSubmit={submit} noValidate>
-            <Field>
-              <Label htmlFor="reg-name">Nome completo</Label>
-              <Input
-                id="reg-name"
-                autoComplete="name"
-                value={form.name}
-                $invalid={Boolean(errors.name)}
-                aria-invalid={Boolean(errors.name) || undefined}
-                aria-describedby={errors.name ? "reg-name-error" : undefined}
-                onChange={(e) => update("name", e.target.value)}
-                required
-              />
-              {errors.name && (
-                <ErrorText id="reg-name-error">{errors.name}</ErrorText>
-              )}
-            </Field>
+          {user ? (
+            <AlreadySignedIn action="criar conta" />
+          ) : (
+            <>
+              <form onSubmit={submit} noValidate>
+                <Field>
+                  <Label htmlFor="reg-name">Nome completo</Label>
+                  <Input
+                    id="reg-name"
+                    autoComplete="name"
+                    value={form.name}
+                    $invalid={Boolean(errors.name)}
+                    aria-invalid={Boolean(errors.name) || undefined}
+                    aria-describedby={
+                      errors.name ? "reg-name-error" : undefined
+                    }
+                    onChange={(e) => update("name", e.target.value)}
+                    required
+                  />
+                  {errors.name && (
+                    <ErrorText id="reg-name-error">{errors.name}</ErrorText>
+                  )}
+                </Field>
 
-            <Field>
-              <Label htmlFor="reg-email">E-mail</Label>
-              <Input
-                id="reg-email"
-                type="email"
-                autoComplete="email"
-                value={form.email}
-                $invalid={Boolean(errors.email)}
-                aria-invalid={Boolean(errors.email) || undefined}
-                aria-describedby={errors.email ? "reg-email-error" : undefined}
-                onChange={(e) => update("email", e.target.value)}
-                required
-              />
-              {errors.email && (
-                <ErrorText id="reg-email-error">{errors.email}</ErrorText>
-              )}
-            </Field>
+                <Field>
+                  <Label htmlFor="reg-email">E-mail</Label>
+                  <Input
+                    id="reg-email"
+                    type="email"
+                    autoComplete="email"
+                    value={form.email}
+                    $invalid={Boolean(errors.email)}
+                    aria-invalid={Boolean(errors.email) || undefined}
+                    aria-describedby={
+                      errors.email ? "reg-email-error" : undefined
+                    }
+                    onChange={(e) => update("email", e.target.value)}
+                    required
+                  />
+                  {errors.email && (
+                    <ErrorText id="reg-email-error">{errors.email}</ErrorText>
+                  )}
+                </Field>
 
-            <Field>
-              <Label htmlFor="reg-password">Senha</Label>
-              <PasswordInput
-                id="reg-password"
-                autoComplete="new-password"
-                value={form.password}
-                $invalid={Boolean(errors.password)}
-                aria-invalid={Boolean(errors.password) || undefined}
-                aria-describedby={
-                  errors.password
-                    ? "reg-password-error reg-password-rules"
-                    : "reg-password-rules"
-                }
-                onChange={(e) => update("password", e.target.value)}
-                required
-              />
-              <PasswordChecklist
-                id="reg-password-rules"
-                password={form.password}
-              />
-              {errors.password && (
-                <ErrorText id="reg-password-error">{errors.password}</ErrorText>
-              )}
-            </Field>
+                <Field>
+                  <Label htmlFor="reg-password">Senha</Label>
+                  <PasswordInput
+                    id="reg-password"
+                    autoComplete="new-password"
+                    value={form.password}
+                    $invalid={Boolean(errors.password)}
+                    aria-invalid={Boolean(errors.password) || undefined}
+                    aria-describedby={
+                      errors.password
+                        ? "reg-password-error reg-password-rules"
+                        : "reg-password-rules"
+                    }
+                    onChange={(e) => update("password", e.target.value)}
+                    required
+                  />
+                  <PasswordChecklist
+                    id="reg-password-rules"
+                    password={form.password}
+                  />
+                  {errors.password && (
+                    <ErrorText id="reg-password-error">
+                      {errors.password}
+                    </ErrorText>
+                  )}
+                </Field>
 
-            <Field>
-              <Label htmlFor="reg-phone">Telefone (opcional)</Label>
-              <Input
-                id="reg-phone"
-                autoComplete="tel"
-                value={form.phone}
-                onChange={(e) => update("phone", maskPhone(e.target.value))}
-              />
-            </Field>
+                <Field>
+                  <Label htmlFor="reg-phone">Telefone (opcional)</Label>
+                  <Input
+                    id="reg-phone"
+                    autoComplete="tel"
+                    value={form.phone}
+                    onChange={(e) => update("phone", maskPhone(e.target.value))}
+                  />
+                </Field>
 
-            <Field>
-              <Label htmlFor="reg-document">
-                CPF (opcional, agiliza o checkout)
-              </Label>
-              <Input
-                id="reg-document"
-                inputMode="numeric"
-                value={form.document}
-                onChange={(e) =>
-                  update("document", maskDocument(e.target.value))
-                }
-              />
-            </Field>
+                <Field>
+                  <Label htmlFor="reg-document">
+                    CPF (opcional, agiliza o checkout)
+                  </Label>
+                  <Input
+                    id="reg-document"
+                    inputMode="numeric"
+                    value={form.document}
+                    onChange={(e) =>
+                      update("document", maskDocument(e.target.value))
+                    }
+                  />
+                </Field>
 
-            <div className="consents">
-              <Checkbox
-                id="reg-terms"
-                checked={acceptTerms}
-                onChange={setAcceptTerms}
-                required
-                invalid={Boolean(errors.terms)}
-                errorId={errors.terms ? "reg-terms-error" : undefined}
-              >
-                Li e aceito os{" "}
-                <Link to="/termos" target="_blank" rel="noopener">
-                  termos de uso
-                </Link>{" "}
-                e a{" "}
-                <Link to="/privacidade" target="_blank" rel="noopener">
-                  política de privacidade
-                </Link>
-                .
-              </Checkbox>
-              {errors.terms && (
-                <ErrorText id="reg-terms-error">{errors.terms}</ErrorText>
-              )}
+                <div className="consents">
+                  <Checkbox
+                    id="reg-terms"
+                    checked={acceptTerms}
+                    onChange={setAcceptTerms}
+                    required
+                    invalid={Boolean(errors.terms)}
+                    errorId={errors.terms ? "reg-terms-error" : undefined}
+                  >
+                    Li e aceito os{" "}
+                    <Link to="/termos" target="_blank" rel="noopener">
+                      termos de uso
+                    </Link>{" "}
+                    e a{" "}
+                    <Link to="/privacidade" target="_blank" rel="noopener">
+                      política de privacidade
+                    </Link>
+                    .
+                  </Checkbox>
+                  {errors.terms && (
+                    <ErrorText id="reg-terms-error">{errors.terms}</ErrorText>
+                  )}
 
-              <Checkbox
-                id="reg-marketing"
-                checked={marketingOptIn}
-                onChange={setMarketingOptIn}
-              >
-                Quero receber novidades e ofertas por e-mail (opcional; dá para
-                cancelar quando quiser).
-              </Checkbox>
-            </div>
+                  <Checkbox
+                    id="reg-marketing"
+                    checked={marketingOptIn}
+                    onChange={setMarketingOptIn}
+                  >
+                    Quero receber novidades e ofertas por e-mail (opcional; dá
+                    para cancelar quando quiser).
+                  </Checkbox>
+                </div>
 
-            {error && <ErrorText role="alert">{error}</ErrorText>}
+                {error && <ErrorText role="alert">{error}</ErrorText>}
 
-            <Button $full $size="lg" type="submit" disabled={submitting}>
-              {submitting ? "Enviando código..." : "Cadastrar"}
-            </Button>
-          </form>
+                <Button $full $size="lg" type="submit" disabled={submitting}>
+                  {submitting ? "Enviando código..." : "Cadastrar"}
+                </Button>
+              </form>
 
-          <p className="alt">
-            Já tem conta? <Link to="/entrar">Entrar</Link>
-          </p>
+              <p className="alt">
+                Já tem conta? <Link to="/entrar">Entrar</Link>
+              </p>
+            </>
+          )}
         </Panel>
       </Container>
     </Section>

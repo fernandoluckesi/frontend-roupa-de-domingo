@@ -172,6 +172,11 @@ export const authService = {
     return data;
   },
 
+  async updateAddress(id: string, payload: Omit<Address, "id">): Promise<Address> {
+    const { data } = await api.put<Address>(`/users/me/addresses/${id}`, payload);
+    return data;
+  },
+
   async removeAddress(id: string): Promise<void> {
     await api.delete(`/users/me/addresses/${id}`);
   },

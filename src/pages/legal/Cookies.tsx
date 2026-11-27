@@ -7,7 +7,7 @@ import { useConsent } from "../../contexts/ConsentContext";
 
 const STORAGE_ITEMS = [
   { key: "rd_session", type: "Cookie (httpOnly)", category: "Essencial", purpose: "Mantém você logado com segurança. Não pode ser lido por scripts da página.", duration: "7 dias, ou até sair da conta" },
-  { key: "rd:sessionId", type: "localStorage", category: "Essencial", purpose: "Identifica o carrinho de quem ainda não tem conta.", duration: "Até você limpar os dados do navegador" },
+  { key: "rd:sessionId", type: "localStorage", category: "Essencial", purpose: "Identifica o carrinho de quem ainda não tem conta. Também agrupa, de forma anônima, as páginas vistas na nossa análise de acessos própria (sem cookie e sem terceiros; quem recusa “Estatísticas” conta só como visita).", duration: "Até você limpar os dados do navegador" },
   { key: "rd:zipCode", type: "localStorage", category: "Essencial", purpose: "Lembra o CEP para recalcular o frete.", duration: "Até você limpar os dados do navegador" },
   { key: "rd:pendingSignupEmail", type: "sessionStorage", category: "Essencial", purpose: "Guarda o e-mail do cadastro enquanto você digita o código de confirmação.", duration: "Até confirmar o cadastro ou fechar a aba" },
   { key: "rd:lastOrder", type: "sessionStorage", category: "Essencial", purpose: "Mostra o pedido certo ao voltar do Mercado Pago.", duration: "Até fechar a aba" },

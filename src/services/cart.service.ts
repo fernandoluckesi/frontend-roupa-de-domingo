@@ -17,10 +17,14 @@ export const cartService = {
     return data;
   },
 
-  async updateItem(itemId: string, quantity: number): Promise<Cart> {
-    const { data } = await api.patch<Cart>(`/cart/items/${itemId}`, {
-      quantity,
-    });
+  async updateItem(itemId: string, changes: { quantity?: number; selected?: boolean }): Promise<Cart> {
+    const { data } = await api.patch<Cart>(`/cart/items/${itemId}`, changes);
+    return data;
+  },
+
+  /** Marca ou desmarca todos os itens ("Todos os produtos") */
+  async selectAll(selected: boolean): Promise<Cart> {
+    const { data } = await api.patch<Cart>("/cart/selection", { selected });
     return data;
   },
 

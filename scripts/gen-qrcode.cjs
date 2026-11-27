@@ -13,7 +13,14 @@ const QRCode = require("qrcode");
 
 const SITE =
   process.argv[2] ?? "https://roupadedomingo.com.br";
-const TARGET = `${SITE.replace(/\/$/, "")}/segredo`;
+const BASE = `${SITE.replace(/\/$/, "")}/segredo`;
+
+// Um QR por local de impressao: o ?q= diz ao painel de analise de onde veio o acesso
+// (ver docs-roupa-de-domingo/ANALISE-DE-ACESSOS.md). "segredo" e o QR original, sem local.
+const VARIANTS = [
+  { file: "segredo", url: BASE },
+  { file: "camiseta-costas", url: `${BASE}?q=costas`, printPx: 3000 },
+];
 
 const OUT_DIR = path.join(__dirname, "..", "src", "assets", "brand", "QRCodes");
 
@@ -29,19 +36,23 @@ const OPTIONS = {
 async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  // SVG: vetor para usar em qualquer tamanho de impressao sem perder nitidez.
-  const svg = await QRCode.toString(TARGET, { ...OPTIONS, type: "svg" });
-  fs.writeFileSync(path.join(OUT_DIR, "segredo.svg"), svg);
+  for (const { file, url, printPx } of VARIANTS) {
+    // SVG: vetor para usar em qualquer tamanho de impressao sem perder nitidez.
+    const svg = await QRCode.toString(url, { ...OPTIONS, type: "svg" });
+    fs.writeFileSync(path.join(OUT_DIR, `${file}.svg`), svg);
 
-  // PNG 1024: para quem precisa de bitmap (etiqueta, post, marketplace).
-  await QRCode.toFile(path.join(OUT_DIR, "segredo-1024.png"), TARGET, {
-    ...OPTIONS,
-    width: 1024,
-  });
+    // PNG 1024: para quem precisa de bitmap (etiqueta, post, marketplace).
+    await QRCode.toFile(path.join(OUT_DIR, `${file}-1024.png`), url, { ...OPTIONS, width: 1024 });
 
-  console.log(`QR Code gerado para ${TARGET}`);
-  console.log(`  ${path.join(OUT_DIR, "segredo.svg")}`);
-  console.log(`  ${path.join(OUT_DIR, "segredo-1024.png")}`);
+    // Arte de impressao (300 DPI): vai junto das outras artes em docs/catalog/print-arts
+    if (printPx) {
+      const printDir = path.join(__dirname, "..", "..", "docs-roupa-de-domingo", "catalog", "print-arts", "qrcode");
+      fs.mkdirSync(printDir, { recursive: true });
+      await QRCode.toFile(path.join(printDir, `${file}-${printPx}px.png`), url, { ...OPTIONS, width: printPx });
+    }
+
+    console.log(`QR Code gerado para ${url} (${file})`);
+  }
 }
 
 main().catch((error) => {
